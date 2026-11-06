@@ -115,6 +115,20 @@
        color:var(--paper);padding:.3em 0}
   .rules-box li .x{flex:none}
 
+  /* deal-five choice list */
+  .choices{display:flex;flex-direction:column;gap:.55em;width:100%;
+       max-width:min(92vw,36em);margin:0 0 1.4em}
+  .choice{background:var(--ink-soft);border:2px solid #3A3240;border-radius:12px;
+       padding:.8em 1em;font-family:var(--sans);font-size:15px;font-weight:600;
+       color:var(--paper);cursor:pointer;text-align:left;line-height:1.35;
+       transition:border-color .15s ease,transform .08s ease;display:flex;gap:.8em;
+       align-items:flex-start}
+  .choice:hover{border-color:var(--red);transform:translateY(-1px)}
+  .choice:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+  .choice .ccat{font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+       text-transform:uppercase;color:#FF8FA8;font-weight:700;flex:none;
+       padding-top:.25em;min-width:5.2em}
+
   /* per-card banned words */
   .banned{max-width:min(88vw,30em);margin:0 0 1.2em;text-align:center}
   .banned .bn-head{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
@@ -154,6 +168,7 @@
   .doc td{padding:.6em .8em .6em 0;border-bottom:1px solid var(--line);vertical-align:top}
   .doc .bank{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6em;margin:1vh 0 2vh}
   .doc .bank div{background:#fff;border:1px solid var(--line);border-radius:7px;padding:.7em .9em;font-size:13.5px}
+  .doc .bank .cc{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey-dark);margin-bottom:.25em}
   .doc .bank .bw{font-family:var(--mono);font-size:11.5px;color:var(--red);letter-spacing:.02em}
   .reveal-toggle{background:var(--ink);color:var(--paper);border:none;border-radius:8px;
        padding:.7em 1.1em;font-size:13.5px;font-weight:700;cursor:pointer;margin:.5vh 0 1.5vh}
@@ -187,6 +202,7 @@
       <div class="big-emoji">🤫</div>
       <h1 class="headline">Pick a card. Keep it secret!</h1>
       <p class="subline">Don't show your friend this screen.</p>
+      <div id="cardChoices" class="choices" hidden></div>
       <div id="cardDisplay" class="card-hidden">Press the button below.</div>
 
       <div class="banned" id="cardBanned" hidden>
@@ -205,7 +221,7 @@
       </div>
 
       <div class="btnrow">
-        <button id="drawBtn" class="bigbtn">🎴 Pick a Card</button>
+        <button id="drawBtn" class="bigbtn">🎴 Deal 5 Cards</button>
         <button id="hideBtn" class="bigbtn green" disabled>I've got it — hide it! →</button>
       </div>
     </section>
@@ -290,8 +306,9 @@
   <h2>The Rules, Plainly</h2>
   <ul class="check">
     <li>Pair up, across teams, one device each.</li>
-    <li>A draws a card — a finished text thing (a haiku, a joke, a tiny story). B never
-        sees it, and never sees A's prompt either — only what the AI produces.</li>
+    <li>A is dealt <b>five random cards and picks one</b> — a finished text thing with a
+        stated length (a 3-line haiku, a 3-sentence horror story, a 25-word warning label).
+        B never sees it, and never sees A's prompt either — only what the AI produces.</li>
     <li>A writes a prompt and runs it privately, trying to get the AI to make that thing.
         <b>Every card bans its own giveaway words</b> — the haiku card bans "haiku," "keys,"
         "car," "lost" — and on top of that the prompt can't copy the card's wording, mention
@@ -315,20 +332,26 @@
 
   <h2>The Card Bank</h2>
   <div class="bank">
-    <div><b>A haiku about losing your car keys</b><br><span class="bw">banned: haiku · keys · car · lost</span></div>
-    <div><b>A knock-knock joke about a cat</b><br><span class="bw">banned: knock · joke · cat · meow</span></div>
-    <div><b>A three-sentence horror story set in a vending machine</b><br><span class="bw">banned: horror · scary · vending · machine · snack</span></div>
-    <div><b>A toast for a friend's birthday, way too dramatic</b><br><span class="bw">banned: toast · birthday · cheers · dramatic</span></div>
-    <div><b>A diary entry written from a dog's point of view</b><br><span class="bw">banned: diary · dog · puppy · bark</span></div>
-    <div><b>A breakup text message that's weirdly formal</b><br><span class="bw">banned: breakup · text · formal · relationship</span></div>
-    <div><b>A recipe for &quot;the worst sandwich imaginable&quot;</b><br><span class="bw">banned: recipe · sandwich · worst · bread</span></div>
-    <div><b>A fake movie title with a one-line pitch</b><br><span class="bw">banned: movie · film · title · pitch</span></div>
-    <div><b>An apology note from a cat who knocked something off a table</b><br><span class="bw">banned: apology · sorry · cat · table · knocked</span></div>
-    <div><b>A weather forecast for a made-up planet</b><br><span class="bw">banned: weather · forecast · planet · temperature</span></div>
-    <div><b>A superhero origin story in exactly two sentences</b><br><span class="bw">banned: superhero · origin · powers · hero</span></div>
-    <div><b>A limerick about a broken printer</b><br><span class="bw">banned: limerick · printer · broken · paper</span></div>
+    <div><span class="cc">Poem</span><b>A 3-line haiku about losing your car keys</b><br><span class="bw">banned: haiku · keys · car · lost</span></div>
+    <div><span class="cc">Joke</span><b>A knock-knock joke about a cat, 4 lines total</b><br><span class="bw">banned: knock · joke · cat · meow</span></div>
+    <div><span class="cc">Horror</span><b>A horror story about a vending machine, in exactly 3 sentences</b><br><span class="bw">banned: horror · scary · vending · machine · snack</span></div>
+    <div><span class="cc">Speech</span><b>A birthday toast that is way too dramatic, in 40 words or fewer</b><br><span class="bw">banned: toast · birthday · cheers · dramatic</span></div>
+    <div><span class="cc">Diary</span><b>A diary entry from a dog's point of view, in exactly 4 sentences</b><br><span class="bw">banned: diary · dog · puppy · bark</span></div>
+    <div><span class="cc">Message</span><b>A breakup text that is weirdly formal, in 30 words or fewer</b><br><span class="bw">banned: breakup · text · formal · relationship</span></div>
+    <div><span class="cc">Recipe</span><b>A recipe for the worst sandwich imaginable, in exactly 5 steps</b><br><span class="bw">banned: recipe · sandwich · worst · bread</span></div>
+    <div><span class="cc">Film</span><b>A fake movie title plus a one-sentence pitch</b><br><span class="bw">banned: movie · film · title · pitch</span></div>
+    <div><span class="cc">Letter</span><b>An apology note from a cat who knocked a glass off a table, in exactly 2 sentences</b><br><span class="bw">banned: apology · sorry · cat · table · knocked</span></div>
+    <div><span class="cc">Forecast</span><b>A weather forecast for a made-up planet, in 35 words or fewer</b><br><span class="bw">banned: weather · forecast · planet · temperature</span></div>
+    <div><span class="cc">Comics</span><b>A superhero origin story in exactly 2 sentences</b><br><span class="bw">banned: superhero · origin · powers · hero</span></div>
+    <div><span class="cc">Verse</span><b>A 5-line limerick about a broken printer</b><br><span class="bw">banned: limerick · printer · broken · paper</span></div>
+    <div><span class="cc">Review</span><b>A 1-star product review of a pillow, in exactly 3 sentences</b><br><span class="bw">banned: review · star · pillow · rating</span></div>
+    <div><span class="cc">News</span><b>A news headline plus a one-sentence opening about a squirrel heist</b><br><span class="bw">banned: news · headline · squirrel · heist</span></div>
+    <div><span class="cc">Song</span><b>A 4-line song chorus about running out of coffee</b><br><span class="bw">banned: song · chorus · coffee · lyrics</span></div>
+    <div><span class="cc">Safety</span><b>A warning label for a haunted microwave, in 25 words or fewer</b><br><span class="bw">banned: warning · label · haunted · microwave</span></div>
+    <div><span class="cc">Astrology</span><b>A horoscope for someone having a very average day, in exactly 2 sentences</b><br><span class="bw">banned: horoscope · zodiac · stars · average</span></div>
+    <div><span class="cc">How-to</span><b>Step-by-step instructions for high-fiving, in exactly 4 steps</b><br><span class="bw">banned: high-five · hand · slap · steps</span></div>
   </div>
-  <p>The app draws from this bank automatically, no repeats until all twelve are used — and it shows each card's banned words on screen, so you don't have to police them yourself.</p>
+  <p>Eighteen cards across eighteen categories, each stating its own length. <b>The app deals five at random and lets Person A choose one</b> — so they get a card they actually find funny, which makes for a better prompt. It shows each card's banned words on screen, so you don't have to police them yourself.</p>
 
   <h2>Things That Go Wrong</h2>
   <table>
@@ -363,31 +386,45 @@
 <script>
 (function(){
   // each card carries its own banned words - the obvious giveaways for that card
+  // 18 cards across 18 different categories. Every task states its own length,
+  // and carries the giveaway words that are banned for that card.
   var CARDS = [
-    { task: "A haiku about losing your car keys",
+    { cat: "Poem",         task: "A 3-line haiku about losing your car keys",
       banned: ["haiku", "keys", "car", "lost"] },
-    { task: "A knock-knock joke about a cat",
+    { cat: "Joke",         task: "A knock-knock joke about a cat, 4 lines total",
       banned: ["knock", "joke", "cat", "meow"] },
-    { task: "A three-sentence horror story set in a vending machine",
+    { cat: "Horror",       task: "A horror story about a vending machine, in exactly 3 sentences",
       banned: ["horror", "scary", "vending", "machine", "snack"] },
-    { task: "A toast for a friend's birthday, way too dramatic",
+    { cat: "Speech",       task: "A birthday toast that is way too dramatic, in 40 words or fewer",
       banned: ["toast", "birthday", "cheers", "dramatic"] },
-    { task: "A diary entry written from a dog's point of view",
+    { cat: "Diary",        task: "A diary entry from a dog's point of view, in exactly 4 sentences",
       banned: ["diary", "dog", "puppy", "bark"] },
-    { task: "A breakup text message that's weirdly formal",
+    { cat: "Message",      task: "A breakup text that is weirdly formal, in 30 words or fewer",
       banned: ["breakup", "text", "formal", "relationship"] },
-    { task: "A recipe for \"the worst sandwich imaginable\"",
+    { cat: "Recipe",       task: "A recipe for the worst sandwich imaginable, in exactly 5 steps",
       banned: ["recipe", "sandwich", "worst", "bread"] },
-    { task: "A fake movie title with a one-line pitch",
+    { cat: "Film",         task: "A fake movie title plus a one-sentence pitch",
       banned: ["movie", "film", "title", "pitch"] },
-    { task: "An apology note from a cat who knocked something off a table",
+    { cat: "Letter",       task: "An apology note from a cat who knocked a glass off a table, in exactly 2 sentences",
       banned: ["apology", "sorry", "cat", "table", "knocked"] },
-    { task: "A weather forecast for a made-up planet",
+    { cat: "Forecast",     task: "A weather forecast for a made-up planet, in 35 words or fewer",
       banned: ["weather", "forecast", "planet", "temperature"] },
-    { task: "A superhero origin story in exactly two sentences",
+    { cat: "Comics",       task: "A superhero origin story in exactly 2 sentences",
       banned: ["superhero", "origin", "powers", "hero"] },
-    { task: "A limerick about a broken printer",
-      banned: ["limerick", "printer", "broken", "paper"] }
+    { cat: "Verse",        task: "A 5-line limerick about a broken printer",
+      banned: ["limerick", "printer", "broken", "paper"] },
+    { cat: "Review",       task: "A 1-star product review of a pillow, in exactly 3 sentences",
+      banned: ["review", "star", "pillow", "rating"] },
+    { cat: "News",         task: "A news headline plus a one-sentence opening about a squirrel heist",
+      banned: ["news", "headline", "squirrel", "heist"] },
+    { cat: "Song",         task: "A 4-line song chorus about running out of coffee",
+      banned: ["song", "chorus", "coffee", "lyrics"] },
+    { cat: "Safety",       task: "A warning label for a haunted microwave, in 25 words or fewer",
+      banned: ["warning", "label", "haunted", "microwave"] },
+    { cat: "Astrology",    task: "A horoscope for someone having a very average day, in exactly 2 sentences",
+      banned: ["horoscope", "zodiac", "stars", "average"] },
+    { cat: "How-to",       task: "Step-by-step instructions for high-fiving, in exactly 4 steps",
+      banned: ["high-five", "hand", "slap", "steps"] }
   ];
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -400,6 +437,15 @@
     }
   }
   function drawCard(){ if (!deck.length) refillDeck(); return deck.pop(); }
+  // deal five distinct cards for A to choose from
+  function dealFive(){
+    var hand = [], seen = {};
+    while (hand.length < 5) {
+      var c = drawCard();
+      if (!seen[c.task]) { seen[c.task] = 1; hand.push(c); }
+    }
+    return hand;
+  }
 
   function beep(freq, dur){
     try {
@@ -467,6 +513,7 @@
   var hideBtn = document.getElementById('hideBtn');
   var cardRules = document.getElementById('cardRules');
   var cardBanned = document.getElementById('cardBanned');
+  var cardChoices = document.getElementById('cardChoices');
   var promptBanned = document.getElementById('promptBanned');
 
   function renderBanned(card){
@@ -484,32 +531,43 @@
     });
   }
 
+  function chooseCard(card){
+    currentCard = card;
+    cardChoices.hidden = true;
+    cardChoices.innerHTML = '';
+    cardDisplay.className = 'card-shown';
+    cardDisplay.textContent = card.task;
+    renderBanned(card);
+    cardRules.hidden = false;
+    hideBtn.disabled = false;
+    drawBtn.textContent = '🎴 Deal 5 New Cards';
+  }
+
   drawBtn.addEventListener('click', function(){
     hideBtn.disabled = true;
-    if (reduceMotion) {
-      currentCard = drawCard();
-      cardDisplay.className = 'card-shown';
-      cardDisplay.textContent = currentCard.task;
-      renderBanned(currentCard);
-      hideBtn.disabled = false;
-      cardRules.hidden = false;
-      return;
-    }
+    cardRules.hidden = true;
+    cardBanned.hidden = true;
+    promptBanned.hidden = true;
+    currentCard = null;
     cardDisplay.className = 'card-hidden';
-    var ticks = 0, maxTicks = 10;
-    var spin = setInterval(function(){
-      cardDisplay.textContent = CARDS[Math.floor(Math.random() * CARDS.length)].task;
-      ticks++;
-      if (ticks >= maxTicks) {
-        clearInterval(spin);
-        currentCard = drawCard();
-        cardDisplay.className = 'card-shown';
-        cardDisplay.textContent = currentCard.task;
-        renderBanned(currentCard);
-        hideBtn.disabled = false;
-        cardRules.hidden = false;
-      }
-    }, 70);
+    cardDisplay.textContent = 'Tap the one you want. Your friend must not see these.';
+
+    cardChoices.innerHTML = '';
+    dealFive().forEach(function(card){
+      var b = document.createElement('button');
+      b.className = 'choice';
+      b.type = 'button';
+      var cat = document.createElement('span');
+      cat.className = 'ccat';
+      cat.textContent = card.cat;
+      var txt = document.createElement('span');
+      txt.textContent = card.task;
+      b.appendChild(cat);
+      b.appendChild(txt);
+      b.addEventListener('click', function(){ chooseCard(card); });
+      cardChoices.appendChild(b);
+    });
+    cardChoices.hidden = false;
   });
 
   hideBtn.addEventListener('click', function(){ goTo(2); });
@@ -609,6 +667,9 @@
 
     cardDisplay.className = 'card-hidden';
     cardDisplay.textContent = 'Press the button below.';
+    cardChoices.hidden = true;
+    cardChoices.innerHTML = '';
+    drawBtn.textContent = '🎴 Deal 5 Cards';
     cardRules.hidden = true;
     cardBanned.hidden = true;
     promptBanned.hidden = true;
