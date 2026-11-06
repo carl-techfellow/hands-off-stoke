@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hands Off — Explain It to the Time Traveler</title>
+<style>
+  :root{
+    --ink:#161217; --ink-soft:#231C24; --paper:#FAF6F2; --red:#D6003C;
+    --grey:#9A9095; --grey-dark:#5C5458; --line:#E3DCD6; --wash:#FFFFFF;
+    --mono:Consolas,"Courier New",monospace;
+    --sans:"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+       line-height:1.62;padding:5vh 6vw 14vh;max-width:62rem;margin:0 auto}
+  .brand{font-weight:900;font-size:18px}
+  .brand .star{color:var(--red)}
+  .brand .mke{font-weight:400;letter-spacing:.22em;text-transform:uppercase;
+       font-size:.6em;vertical-align:.12em;margin-left:.8em;opacity:.75}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+       color:var(--red);margin-top:3vh;font-weight:700}
+  h1{font-weight:900;font-size:clamp(32px,5.6vw,58px);text-transform:uppercase;
+     letter-spacing:-.02em;line-height:1.02;margin:.6vh 0 .8vh;text-wrap:balance}
+  .lede{color:var(--grey-dark);font-size:18px;max-width:62ch;margin-bottom:1vh}
+  .meta{display:flex;flex-wrap:wrap;gap:.6em 1.4em;font-size:13px;color:var(--grey-dark);
+        margin:2.2vh 0 0;font-family:var(--mono)}
+  .meta b{color:var(--ink);font-family:var(--sans);font-weight:700}
+  h2{font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.16em;
+     color:var(--red);margin:6.5vh 0 1.6vh;padding-top:2.2vh;border-top:2px solid var(--ink)}
+  h2:first-of-type{margin-top:5vh}
+  h3{font-size:18px;font-weight:700;margin:3vh 0 .8vh}
+  p{max-width:68ch;margin-bottom:1.05em}
+  .lede + .meta + h2{margin-top:5vh}
+  code,.f{font-family:var(--mono);font-size:.92em;background:#fff;
+       border:1px solid var(--line);border-radius:4px;padding:.08em .4em}
+  a{color:var(--red)}
+  ol,ul{margin:0 0 1.5em 1.4em}
+  li{margin-bottom:.6em;max-width:66ch}
+  .cardbox{border-left:5px solid var(--red);background:var(--wash);padding:1.4em 1.6em;
+        margin:2vh 0 2.5vh;border-radius:0 8px 8px 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .cardbox .ttl{font-weight:900;text-transform:uppercase;letter-spacing:.1em;
+        font-size:12px;color:var(--red);display:block;margin-bottom:1em}
+  .cardbox ol{margin-bottom:0}
+  .bank{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8em;margin:1.5vh 0 2.5vh}
+  .bank div{background:var(--wash);border:1px solid var(--line);border-radius:8px;
+        padding:.9em 1.1em;font-size:15px}
+  .tip{border-left:4px solid var(--grey);background:var(--wash);padding:1em 1.3em;
+        margin:1.5vh 0 2.5vh;border-radius:0 8px 8px 0;font-size:15px;color:var(--grey-dark)}
+  .tip b{color:var(--ink)}
+  .quote{border-left:4px solid var(--red);background:var(--ink);color:var(--paper);
+        padding:1.3em 1.6em;margin:2vh 0 2.5vh;border-radius:0 8px 8px 0;
+        font-size:17px;line-height:1.55;max-width:60ch}
+  .steps{counter-reset:step;list-style:none;margin:0 0 2.5vh;padding:0}
+  .steps li{counter-increment:step;position:relative;padding:.7em 0 .7em 2.6em;
+        border-top:1px solid var(--line);max-width:62ch}
+  .steps li:first-child{border-top:none}
+  .steps li::before{content:counter(step);position:absolute;left:0;top:.7em;
+        width:1.7em;height:1.7em;border-radius:50%;background:var(--ink);color:var(--paper);
+        font-family:var(--mono);font-size:12px;font-weight:700;display:flex;
+        align-items:center;justify-content:center}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:1.5vh 0 2.5vh}
+  th{text-align:left;color:var(--red);font-size:11px;letter-spacing:.1em;
+     text-transform:uppercase;padding:.6em .9em .6em 0;border-bottom:2px solid var(--ink)}
+  td{padding:.7em .9em .7em 0;border-bottom:1px solid var(--line);vertical-align:top}
+  ul.check{list-style:none;margin-left:0}
+  ul.check li{display:flex;gap:.7em;align-items:flex-start;max-width:62ch;
+        border-bottom:1px solid var(--line);padding:.6em 0;margin-bottom:0}
+  ul.check li::before{content:"☐";color:var(--red);flex:none;font-size:16px;line-height:1.4}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:0 3em}
+  @media (max-width:640px){.twocol{grid-template-columns:1fr}}
+  .foot{margin-top:8vh;padding-top:2vh;border-top:2px solid var(--ink);
+        color:var(--grey-dark);font-size:14px}
+  .reveal{font-weight:700;color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="brand">i.c.stars <span class="star">*</span> <span class="mke">Milwaukee</span></div>
+<div class="kicker">Guided Tech Learning · Stoke</div>
+<h1>Hands Off<br>Explain It to the Time Traveler</h1>
+<p class="lede">A write-it-down, hand-it-off, watch-silently game. Genuinely fun to play —
+the point only reveals itself in the very last sentence.</p>
+<div class="meta">
+  <span><b>Group size:</b> 6–30</span>
+  <span><b>Time:</b> 10 minutes</span>
+  <span><b>Needs:</b> paper, a timer, an AI tool</span>
+  <span><b>Format:</b> in person or virtual</span>
+</div>
+
+<h2>The Card — what to say to the room</h2>
+
+<div class="cardbox">
+  <span class="ttl">Read this aloud</span>
+  <ol>
+    <li>Pair up, <b>across teams.</b></li>
+    <li>A gets <b>60 seconds to write</b> — not say out loud — instructions telling an AI how
+        to explain something totally normal to someone who has never encountered it. Draw a
+        card from the bank, or make one up in the same spirit.</li>
+    <li>A hands the written instructions to B and then <b>goes completely silent.</b> No
+        talking, no pointing, no "wait, I meant—"</li>
+    <li>B reads only what's written, pastes it into an AI tool, and reads the result out loud
+        to the room — up to 90 seconds, can re-prompt, gets nothing from A.</li>
+    <li>Room judges: did it actually work? Would the time traveler get it?</li>
+    <li>Swap and go again.</li>
+  </ol>
+</div>
+
+<h3>The card bank</h3>
+<div class="bank">
+  <div>Explain how to tie a shoe to someone who has never worn shoes</div>
+  <div>Explain what a Monday is to someone with no concept of a calendar</div>
+  <div>Explain an elevator to someone from 300 years ago</div>
+  <div>Explain a text message to a medieval pen pal</div>
+  <div>Explain how to make a sandwich to someone who has never eaten food cut into pieces</div>
+  <div>Explain why people clap after a movie to someone who has never seen one</div>
+</div>
+
+<div class="tip"><b>Tip:</b> the funniest results come from instructions that are almost
+right — the AI takes the literal words and runs, and a missing detail shows up as something
+genuinely absurd rather than just wrong.</div>
+
+<h2>Materials Checklist</h2>
+
+<p><b>Everyone needs:</b></p>
+<ul class="check">
+  <li><label>An AI tool, open and logged in, before the session starts — not during</label></li>
+  <li><label>Something to write on — paper and a pen, or a shared doc</label></li>
+</ul>
+
+<p style="margin-top:2.5vh"><b>You need:</b></p>
+<ul class="check">
+  <li><label>The card bank visible or handed out, so you're not reading it aloud every round</label></li>
+  <li><label>A visible timer — two windows, 60 seconds and 90 seconds</label></li>
+  <li><label>A way to pair people up — quick count-off, or pre-assigned for cross-team mixing</label></li>
+  <li><label>One example run done yourself beforehand, so you know what a good one sounds like</label></li>
+</ul>
+
+<p style="margin-top:2.5vh"><b>If virtual, also need:</b></p>
+<ul class="check">
+  <li><label>Breakout rooms with pairs pre-built and posted in chat before opening — not randomized</label></li>
+  <li><label>Screen-share enabled for all participants, checked before the session</label></li>
+  <li><label>A way to call time into breakout rooms, or someone dropping in to call it</label></li>
+</ul>
+
+<h2>Run Sheet — step by step</h2>
+
+<h3>Setup</h3>
+<ol class="steps">
+  <li>Clear floor space / make sure pairs can spread out.</li>
+  <li>Confirm paper and pens are out, and every AI tool is open and ready.</li>
+  <li>Read three card-bank examples out loud so the room hears the register before anyone writes.</li>
+  <li>Say the rule once, exactly: <span class="f">"Sixty seconds, written only. Once you hand
+      it off, not one more word — no clarifying, no hinting. If it's not on the page, it
+      doesn't exist."</span></li>
+  <li>If anyone asks <i>"wait, is this about the project?"</i> — say: <span class="f">"You'll
+      see in a minute."</span> Nothing more.</li>
+  <li>Pair people up, across teams — count off, don't let people self-select by team.</li>
+  <li>In each pair, point to one person: <span class="f">"You're A first."</span></li>
+</ol>
+
+<h3>Round 1 (≈4 min)</h3>
+<ol class="steps">
+  <li>Say: <span class="f">"A — pick a card, or make one up in the same spirit. Sixty seconds
+      to write instructions for the AI. Go."</span></li>
+  <li>Time 60 seconds, visibly.</li>
+  <li>Call time: <span class="f">"Pens down. Hand it to B. A — you're silent from here."</span></li>
+  <li>Say: <span class="f">"B — paste exactly what's written into your AI. Ninety seconds, you
+      can re-prompt, but nothing from A."</span></li>
+  <li>Time 90 seconds.</li>
+  <li>Call time: <span class="f">"B — read it to the room."</span></li>
+  <li>Let the room react out loud.</li>
+  <li>Ask A directly: <span class="f">"Is that what you meant?"</span> — one short answer.</li>
+</ol>
+
+<h3>Round 2 (≈4 min)</h3>
+<ol class="steps">
+  <li>Say: <span class="f">"Swap. B writes now."</span></li>
+  <li>Repeat Round 1's steps with roles reversed.</li>
+</ol>
+
+<h3>Land It (≈2 min)</h3>
+<ol class="steps">
+  <li>Ask the room: <span class="f">"Would the time traveler actually get it?"</span> Take two
+      or three answers, let people enjoy it.</li>
+  <li class="reveal">Then say this once, clearly, and don't repeat it — see below.</li>
+  <li>Move straight into the work. No lingering on the connection.</li>
+</ol>
+
+<div class="quote">
+  "Notice what just happened. You wrote something you were sure was clear. The AI could only
+  use exactly what was on the page — no context, no reading your mind, no filling gaps with
+  what it already knew about you. That's the next forty minutes, except the stranger is a
+  real auditor and the page is your repo."
+</div>
+
+<p style="color:var(--grey-dark);font-size:15px">That's the only connection-to-the-work
+sentence in the whole session. Say it once, don't repeat it.</p>
+
+<h2>Things That Go Wrong</h2>
+
+<table>
+  <tr><th>What happens</th><th>What you do</th></tr>
+  <tr><td>Someone explains the connection too early, hyping round one</td>
+      <td>Head it off before you start: "No spoilers — just play, we'll talk about why after."</td></tr>
+  <tr><td>A talks during B's turn</td>
+      <td>Call it instantly: "Hands off — that's the whole game."</td></tr>
+  <tr><td>A's instruction is too long for 60 seconds, cuts off mid-thought</td>
+      <td>Let it run — it's a real finding, and it surfaces itself when the AI's answer is
+          clearly missing the ending A never wrote.</td></tr>
+  <tr><td>B tries to guess what A "probably meant" instead of reading literally</td>
+      <td>Redirect once: "Only what's on the page."</td></tr>
+  <tr><td>Someone pastes something real/personal instead of invented</td>
+      <td>Steer it back: "Keep it invented, keep it silly."</td></tr>
+</table>
+
+<h2>Running It Virtually</h2>
+
+<p>Same mechanic, same timing. Three adjustments:</p>
+<ul>
+  <li><b>Breakout rooms, pre-built pairs</b> — post pairings in chat before opening breakouts.</li>
+  <li><b>A writes in the chat or a shared doc</b> — already the rule here, nothing changes.</li>
+  <li><b>B shares their screen</b> while working the AI tool, so A and the room see the real
+      output land live — the reactions are half the fun, don't lose them to an unshared
+      screen.</li>
+</ul>
+
+<h2>What "Done" Looks Like</h2>
+
+<p>The room had a genuinely fun ten minutes, laughed at a few AI outputs, and only in the
+last sentence connected it to their own repo. If people are still laughing about round two's
+answer when the closing line lands, that's exactly right — the fun isn't a wrapper to strip
+off, it's what makes the turn land.</p>
+
+<div class="foot">
+  i.c.stars<span class="star">*</span> Milwaukee · Cycle 21 · Guided Tech Learning stoke
+</div>
+
+</body>
+</html>
