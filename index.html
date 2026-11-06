@@ -72,6 +72,47 @@
   .foot{margin-top:8vh;padding-top:2vh;border-top:2px solid var(--ink);
         color:var(--grey-dark);font-size:14px}
   .reveal{font-weight:700;color:var(--ink)}
+
+  /* ---------- the live tool ---------- */
+  .tool{background:var(--ink);color:var(--paper);border-radius:14px;
+        padding:2.2em 2.2em 2.4em;margin:1.5vh 0 3vh;
+        box-shadow:0 10px 32px rgba(0,0,0,.18)}
+  .tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.6em}
+  @media (max-width:760px){.tool-grid{grid-template-columns:1fr}}
+  .tool-card{background:var(--ink-soft);border-radius:10px;padding:1.4em 1.5em;
+        display:flex;flex-direction:column;gap:.9em}
+  .tool-card.full{grid-column:1 / -1}
+  .tool-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+        text-transform:uppercase;color:#FF8FA8;font-weight:700}
+  .card-display{font-size:clamp(18px,2.6vw,24px);font-weight:700;line-height:1.35;
+        min-height:2.8em;display:flex;align-items:center;text-wrap:balance}
+  .card-display.spinning{color:var(--grey);font-family:var(--mono);font-weight:400;font-size:17px}
+  .btn{font-family:var(--sans);font-weight:700;font-size:14.5px;border:none;
+        border-radius:8px;padding:.7em 1.1em;cursor:pointer;background:var(--red);
+        color:#fff;transition:transform .08s ease,opacity .15s ease}
+  .btn:hover:not(:disabled){transform:translateY(-1px)}
+  .btn:active:not(:disabled){transform:translateY(0)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn-ghost{background:transparent;border:1.5px solid var(--grey-dark);color:var(--paper)}
+  .btn-primary{background:#2F9E58}
+  .tool-row{display:flex;align-items:center;gap:.9em;flex-wrap:wrap}
+  .custom-input{font-family:var(--sans);font-size:15px;padding:.6em .8em;border-radius:7px;
+        border:1.5px solid var(--grey-dark);background:var(--ink);color:var(--paper);width:100%}
+  .custom-input::placeholder{color:var(--grey)}
+  .write-box{font-family:var(--sans);font-size:15.5px;line-height:1.5;padding:.9em 1em;
+        border-radius:8px;border:1.5px solid var(--grey-dark);background:var(--ink);
+        color:var(--paper);min-height:6.5em;resize:vertical;width:100%}
+  .write-box::placeholder{color:var(--grey)}
+  .write-box:read-only{background:#1C1620;border-color:#3A3240;color:var(--grey)}
+  .timer{font-family:var(--mono);font-size:clamp(30px,5vw,42px);font-weight:700;
+        font-variant-numeric:tabular-nums;color:var(--paper);min-width:2ch;text-align:center}
+  .timer.low{color:#FF8FA8}
+  .timer.flash{animation:flash .5s ease 3}
+  @keyframes flash{0%,100%{color:var(--paper)}50%{color:#FF3D67}}
+  @media (prefers-reduced-motion:reduce){.timer.flash{animation:none;color:#FF3D67}}
+  .copy-status{font-family:var(--mono);font-size:13px;color:#7FBF9B}
+  .tool-note{font-size:14px;color:var(--grey);margin:0}
+  .tool-actions{display:flex;justify-content:flex-end;margin-top:1.6em}
 </style>
 </head>
 <body>
@@ -119,6 +160,54 @@ the point only reveals itself in the very last sentence.</p>
 <div class="tip"><b>Tip:</b> the funniest results come from instructions that are almost
 right — the AI takes the literal words and runs, and a missing detail shows up as something
 genuinely absurd rather than just wrong.</div>
+
+<h2>Run It Live — the tool</h2>
+<p>One shared screen is enough for a pair, or everyone opens this page on their own device.
+Draw a card, A writes against the clock, hand off, B's clock starts the moment it's copied.</p>
+
+<div class="tool">
+  <div class="tool-grid">
+
+    <div class="tool-card full">
+      <span class="tool-label">Card for A</span>
+      <div id="cardDisplay" class="card-display">Press Draw to get a card</div>
+      <div class="tool-row">
+        <button id="drawBtn" class="btn">🎴 Draw a Card</button>
+        <button id="customBtn" class="btn btn-ghost">✎ Use my own instead</button>
+      </div>
+      <input id="customInput" class="custom-input" type="text"
+             placeholder="Type your own card, then press Enter…" style="display:none">
+    </div>
+
+    <div class="tool-card full">
+      <span class="tool-label">Person A writes here — nothing said out loud</span>
+      <textarea id="writeBox" class="write-box"
+                placeholder="A types the instruction for the AI here…"></textarea>
+      <div class="tool-row">
+        <button id="writeTimerBtn" class="btn">⏱ Start 60s Write Timer</button>
+        <span id="writeTimer" class="timer">60</span>
+      </div>
+    </div>
+
+    <div class="tool-card full">
+      <span class="tool-label">Hand-off to Person B</span>
+      <div class="tool-row">
+        <button id="copyBtn" class="btn btn-primary" disabled>📋 Copy for B</button>
+        <span id="copyStatus" class="copy-status"></span>
+      </div>
+      <p class="tool-note">B pastes this straight into their AI tool — nothing from A from
+      here on.</p>
+      <div class="tool-row">
+        <button id="execTimerBtn" class="btn" disabled>⏱ Start 90s Execute Timer</button>
+        <span id="execTimer" class="timer">90</span>
+      </div>
+    </div>
+
+  </div>
+  <div class="tool-actions">
+    <button id="resetBtn" class="btn btn-ghost">↺ New Round</button>
+  </div>
+</div>
 
 <h2>Materials Checklist</h2>
 
@@ -235,6 +324,182 @@ off, it's what makes the turn land.</p>
 <div class="foot">
   i.c.stars<span class="star">*</span> Milwaukee · Cycle 21 · Guided Tech Learning stoke
 </div>
+
+<script>
+(function(){
+  var CARDS = [
+    "Explain how to tie a shoe to someone who has never worn shoes",
+    "Explain what a Monday is to someone with no concept of a calendar",
+    "Explain an elevator to someone from 300 years ago",
+    "Explain a text message to a medieval pen pal",
+    "Explain how to make a sandwich to someone who has never eaten food cut into pieces",
+    "Explain why people clap after a movie to someone who has never seen one"
+  ];
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // shuffle-bag: don't repeat a card until the whole bank has been drawn
+  var deck = [];
+  function refillDeck(){
+    deck = CARDS.slice();
+    for (var i = deck.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = deck[i]; deck[i] = deck[j]; deck[j] = t;
+    }
+  }
+  function drawCard(){ if (!deck.length) refillDeck(); return deck.pop(); }
+
+  function beep(freq, dur){
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      var ctx = new Ctx();
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = freq || 880;
+      g.gain.setValueAtTime(0.18, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (dur || 0.35));
+      o.start();
+      o.stop(ctx.currentTime + (dur || 0.35));
+    } catch (e) { /* audio not available, silently skip */ }
+  }
+
+  var cardDisplay = document.getElementById('cardDisplay');
+  var drawBtn = document.getElementById('drawBtn');
+  var customBtn = document.getElementById('customBtn');
+  var customInput = document.getElementById('customInput');
+
+  drawBtn.addEventListener('click', function(){
+    customInput.style.display = 'none';
+    customInput.value = '';
+    if (reduceMotion) {
+      cardDisplay.classList.remove('spinning');
+      cardDisplay.textContent = drawCard();
+      return;
+    }
+    cardDisplay.classList.add('spinning');
+    var ticks = 0, maxTicks = 10;
+    var spin = setInterval(function(){
+      cardDisplay.textContent = CARDS[Math.floor(Math.random() * CARDS.length)];
+      ticks++;
+      if (ticks >= maxTicks) {
+        clearInterval(spin);
+        cardDisplay.classList.remove('spinning');
+        cardDisplay.textContent = drawCard();
+      }
+    }, 70);
+  });
+
+  customBtn.addEventListener('click', function(){
+    customInput.style.display = customInput.style.display === 'none' ? 'block' : 'none';
+    if (customInput.style.display === 'block') customInput.focus();
+  });
+  customInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && customInput.value.trim()) {
+      cardDisplay.classList.remove('spinning');
+      cardDisplay.textContent = customInput.value.trim();
+      customInput.style.display = 'none';
+    }
+  });
+
+  // write timer
+  var writeBox = document.getElementById('writeBox');
+  var writeTimerBtn = document.getElementById('writeTimerBtn');
+  var writeTimerEl = document.getElementById('writeTimer');
+  var copyBtn = document.getElementById('copyBtn');
+  var copyStatus = document.getElementById('copyStatus');
+  var writeInterval = null;
+
+  writeTimerBtn.addEventListener('click', function(){
+    if (writeInterval) return;
+    var t = 60;
+    writeTimerEl.textContent = t;
+    writeTimerEl.classList.remove('low', 'flash');
+    writeTimerBtn.disabled = true;
+    writeInterval = setInterval(function(){
+      t--;
+      writeTimerEl.textContent = t;
+      if (t <= 10) writeTimerEl.classList.add('low');
+      if (t <= 0) {
+        clearInterval(writeInterval);
+        writeInterval = null;
+        writeTimerEl.textContent = '0';
+        writeTimerEl.classList.add('flash');
+        beep(660, 0.5);
+        writeBox.readOnly = true;
+        copyBtn.disabled = !writeBox.value.trim();
+      }
+    }, 1000);
+  });
+
+  copyBtn.addEventListener('click', function(){
+    var text = writeBox.value;
+    var done = function(ok){
+      copyStatus.textContent = ok ? 'Copied — hand it to B' : 'Copy failed, select and copy manually';
+      if (ok) execTimerBtn.disabled = false;
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){ done(true); }, function(){ done(false); });
+    } else {
+      try {
+        writeBox.removeAttribute('readonly');
+        writeBox.select();
+        document.execCommand('copy');
+        writeBox.readOnly = true;
+        done(true);
+      } catch (e) { done(false); }
+    }
+  });
+
+  // execute timer
+  var execTimerBtn = document.getElementById('execTimerBtn');
+  var execTimerEl = document.getElementById('execTimer');
+  var execInterval = null;
+
+  execTimerBtn.addEventListener('click', function(){
+    if (execInterval) return;
+    var t = 90;
+    execTimerEl.textContent = t;
+    execTimerEl.classList.remove('low', 'flash');
+    execTimerBtn.disabled = true;
+    execInterval = setInterval(function(){
+      t--;
+      execTimerEl.textContent = t;
+      if (t <= 10) execTimerEl.classList.add('low');
+      if (t <= 0) {
+        clearInterval(execInterval);
+        execInterval = null;
+        execTimerEl.textContent = '0';
+        execTimerEl.classList.add('flash');
+        beep(440, 0.6);
+      }
+    }, 1000);
+  });
+
+  // reset
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    clearInterval(writeInterval); writeInterval = null;
+    clearInterval(execInterval); execInterval = null;
+
+    cardDisplay.classList.remove('spinning');
+    cardDisplay.textContent = 'Press Draw to get a card';
+    customInput.style.display = 'none';
+    customInput.value = '';
+
+    writeBox.readOnly = false;
+    writeBox.value = '';
+
+    writeTimerEl.textContent = '60';
+    writeTimerEl.classList.remove('low', 'flash');
+    writeTimerBtn.disabled = false;
+
+    execTimerEl.textContent = '90';
+    execTimerEl.classList.remove('low', 'flash');
+    execTimerBtn.disabled = true;
+
+    copyBtn.disabled = true;
+    copyStatus.textContent = '';
+  });
+})();
+</script>
 
 </body>
 </html>
