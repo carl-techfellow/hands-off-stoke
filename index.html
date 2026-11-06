@@ -8,334 +8,256 @@
   :root{
     --ink:#161217; --ink-soft:#231C24; --paper:#FAF6F2; --red:#D6003C;
     --grey:#9A9095; --grey-dark:#5C5458; --line:#E3DCD6; --wash:#FFFFFF;
+    --green:#2F9E58;
     --mono:Consolas,"Courier New",monospace;
     --sans:"Segoe UI","Helvetica Neue",Arial,sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
-       line-height:1.62;padding:5vh 6vw 14vh;max-width:62rem;margin:0 auto}
-  .brand{font-weight:900;font-size:18px}
-  .brand .star{color:var(--red)}
-  .brand .mke{font-weight:400;letter-spacing:.22em;text-transform:uppercase;
-       font-size:.6em;vertical-align:.12em;margin-left:.8em;opacity:.75}
-  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
-       color:var(--red);margin-top:3vh;font-weight:700}
-  h1{font-weight:900;font-size:clamp(32px,5.6vw,58px);text-transform:uppercase;
-     letter-spacing:-.02em;line-height:1.02;margin:.6vh 0 .8vh;text-wrap:balance}
-  .lede{color:var(--grey-dark);font-size:18px;max-width:62ch;margin-bottom:1vh}
-  .meta{display:flex;flex-wrap:wrap;gap:.6em 1.4em;font-size:13px;color:var(--grey-dark);
-        margin:2.2vh 0 0;font-family:var(--mono)}
-  .meta b{color:var(--ink);font-family:var(--sans);font-weight:700}
-  h2{font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.16em;
-     color:var(--red);margin:6.5vh 0 1.6vh;padding-top:2.2vh;border-top:2px solid var(--ink)}
-  h2:first-of-type{margin-top:5vh}
-  h3{font-size:18px;font-weight:700;margin:3vh 0 .8vh}
-  p{max-width:68ch;margin-bottom:1.05em}
-  code,.f{font-family:var(--mono);font-size:.92em;background:#fff;
-       border:1px solid var(--line);border-radius:4px;padding:.08em .4em}
-  a{color:var(--red)}
-  ol,ul{margin:0 0 1.5em 1.4em}
-  li{margin-bottom:.6em;max-width:66ch}
-  .cardbox{border-left:5px solid var(--red);background:var(--wash);padding:1.4em 1.6em;
-        margin:2vh 0 2.5vh;border-radius:0 8px 8px 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-  .cardbox .ttl{font-weight:900;text-transform:uppercase;letter-spacing:.1em;
-        font-size:12px;color:var(--red);display:block;margin-bottom:1em}
-  .cardbox ol{margin-bottom:0}
-  .bank{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8em;margin:1.5vh 0 2.5vh}
-  .bank div{background:var(--wash);border:1px solid var(--line);border-radius:8px;
-        padding:.9em 1.1em;font-size:15px}
-  .tip{border-left:4px solid var(--grey);background:var(--wash);padding:1em 1.3em;
-        margin:1.5vh 0 2.5vh;border-radius:0 8px 8px 0;font-size:15px;color:var(--grey-dark)}
-  .tip b{color:var(--ink)}
-  .quote{border-left:4px solid var(--red);background:var(--ink);color:var(--paper);
-        padding:1.3em 1.6em;margin:2vh 0 2.5vh;border-radius:0 8px 8px 0;
-        font-size:17px;line-height:1.55;max-width:60ch}
-  .steps{counter-reset:step;list-style:none;margin:0 0 2.5vh;padding:0}
-  .steps li{counter-increment:step;position:relative;padding:.7em 0 .7em 2.6em;
-        border-top:1px solid var(--line);max-width:62ch}
-  .steps li:first-child{border-top:none}
-  .steps li::before{content:counter(step);position:absolute;left:0;top:.7em;
-        width:1.7em;height:1.7em;border-radius:50%;background:var(--ink);color:var(--paper);
-        font-family:var(--mono);font-size:12px;font-weight:700;display:flex;
-        align-items:center;justify-content:center}
-  table{border-collapse:collapse;width:100%;font-size:15px;margin:1.5vh 0 2.5vh}
-  th{text-align:left;color:var(--red);font-size:11px;letter-spacing:.1em;
-     text-transform:uppercase;padding:.6em .9em .6em 0;border-bottom:2px solid var(--ink)}
-  td{padding:.7em .9em .7em 0;border-bottom:1px solid var(--line);vertical-align:top}
-  ul.check{list-style:none;margin-left:0}
-  ul.check li{display:flex;gap:.7em;align-items:flex-start;max-width:62ch;
-        border-bottom:1px solid var(--line);padding:.6em 0;margin-bottom:0}
-  ul.check li::before{content:"☐";color:var(--red);flex:none;font-size:16px;line-height:1.4}
-  .foot{margin-top:8vh;padding-top:2vh;border-top:2px solid var(--ink);
-        color:var(--grey-dark);font-size:14px}
+  html,body{height:100%}
+  body{background:var(--ink);color:var(--paper);font-family:var(--sans);overflow-x:hidden}
 
-  /* ---------- the live tool ---------- */
-  .tool{background:var(--ink);color:var(--paper);border-radius:14px;
-        padding:2.2em 2.2em 2.4em;margin:1.5vh 0 3vh;
-        box-shadow:0 10px 32px rgba(0,0,0,.18)}
-  .tool-grid{display:grid;grid-template-columns:1fr;gap:1.6em}
-  .tool-card{background:var(--ink-soft);border-radius:10px;padding:1.4em 1.5em;
-        display:flex;flex-direction:column;gap:.9em}
-  .tool-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;
-        text-transform:uppercase;color:#FF8FA8;font-weight:700}
-  .tool-sub{font-size:13.5px;color:var(--grey);margin-top:-.4em}
-  .card-display{font-size:clamp(18px,2.6vw,24px);font-weight:700;line-height:1.35;
-        min-height:2.8em;display:flex;align-items:center;text-wrap:balance}
-  .card-display.spinning{color:var(--grey);font-family:var(--mono);font-weight:400;font-size:17px}
-  .card-display.hidden-card{color:var(--grey);font-family:var(--mono);font-size:16px;font-weight:400}
-  .card-display.big-reveal{font-size:clamp(20px,3vw,27px)}
-  .btn{font-family:var(--sans);font-weight:700;font-size:14.5px;border:none;
-        border-radius:8px;padding:.7em 1.1em;cursor:pointer;background:var(--red);
-        color:#fff;transition:transform .08s ease,opacity .15s ease}
-  .btn:hover:not(:disabled){transform:translateY(-1px)}
-  .btn:active:not(:disabled){transform:translateY(0)}
-  .btn:disabled{opacity:.35;cursor:not-allowed}
-  .btn-ghost{background:transparent;border:1.5px solid var(--grey-dark);color:var(--paper)}
-  .btn-primary{background:#2F9E58}
-  .tool-row{display:flex;align-items:center;gap:.9em;flex-wrap:wrap}
-  .write-box{font-family:var(--sans);font-size:15.5px;line-height:1.5;padding:.9em 1em;
-        border-radius:8px;border:1.5px solid var(--grey-dark);background:var(--ink);
-        color:var(--paper);min-height:5.5em;resize:vertical;width:100%}
-  .write-box::placeholder{color:var(--grey)}
-  .timer{font-family:var(--mono);font-size:clamp(30px,5vw,42px);font-weight:700;
-        font-variant-numeric:tabular-nums;color:var(--paper);min-width:2ch;text-align:center}
-  .timer.low{color:#FF8FA8}
-  .timer.flash{animation:flash .5s ease 3}
+  /* ================= THE APP ================= */
+  .app{position:relative;min-height:100svh;display:flex;flex-direction:column}
+  .dots{display:flex;gap:.5em;justify-content:center;padding:3.2vh 0 1vh}
+  .dot{width:10px;height:10px;border-radius:50%;background:#3A3240;transition:background .25s}
+  .dot.done{background:var(--green)}
+  .dot.active{background:var(--red)}
+
+  .screens{position:relative;flex:1}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;
+          justify-content:center;text-align:center;padding:4vh 6vw 6vh;opacity:0;
+          transition:opacity .35s ease}
+  .screen.active{display:flex;opacity:1}
+  @media (prefers-reduced-motion:reduce){.screen{transition:none}}
+
+  .big-emoji{font-size:clamp(44px,9vw,74px);line-height:1;margin-bottom:.3em}
+  .headline{font-weight:900;font-size:clamp(26px,5.5vw,44px);text-transform:uppercase;
+       letter-spacing:-.01em;line-height:1.05;margin-bottom:.4em;text-wrap:balance}
+  .subline{font-size:clamp(16px,2.6vw,21px);color:var(--grey);max-width:34ch;
+       margin:0 auto 1.4em;line-height:1.45}
+  .subline b{color:var(--paper)}
+  .whisper{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+       color:#FF8FA8;font-weight:700;margin-bottom:.6em}
+
+  .bigbtn{font-family:var(--sans);font-weight:900;font-size:clamp(16px,2.6vw,20px);
+       text-transform:uppercase;letter-spacing:.01em;border:none;border-radius:16px;
+       padding:.95em 1.8em;cursor:pointer;background:var(--red);color:#fff;
+       box-shadow:0 8px 24px rgba(214,0,60,.35);transition:transform .1s ease}
+  .bigbtn:hover:not(:disabled){transform:translateY(-2px)}
+  .bigbtn:active:not(:disabled){transform:translateY(0)}
+  .bigbtn:disabled{opacity:.3;cursor:not-allowed;box-shadow:none}
+  .bigbtn.ghost{background:transparent;border:2px solid var(--grey-dark);box-shadow:none}
+  .bigbtn.green{background:var(--green);box-shadow:0 8px 24px rgba(47,158,88,.35)}
+  .btnrow{display:flex;gap:1em;flex-wrap:wrap;justify-content:center;margin-top:.4em}
+
+  .card-shown{background:var(--wash);color:var(--ink);border-radius:18px;padding:1.4em 1.8em;
+       font-size:clamp(19px,3.4vw,27px);font-weight:700;line-height:1.3;max-width:28ch;
+       margin-bottom:1.6em;box-shadow:0 10px 30px rgba(0,0,0,.3);text-wrap:balance}
+  .card-hidden{font-family:var(--mono);font-size:15px;color:var(--grey);margin-bottom:1.6em}
+
+  .bigtimer{font-family:var(--mono);font-weight:900;font-variant-numeric:tabular-nums;
+       font-size:clamp(70px,16vw,130px);line-height:1;margin:.1em 0 .5em;color:var(--paper)}
+  .bigtimer.low{color:#FF8FA8}
+  .bigtimer.flash{animation:flash .5s ease 4}
   @keyframes flash{0%,100%{color:var(--paper)}50%{color:#FF3D67}}
-  @media (prefers-reduced-motion:reduce){.timer.flash{animation:none;color:#FF3D67}}
-  .tool-note{font-size:14px;color:var(--grey);margin:0}
-  .tool-actions{display:flex;justify-content:flex-end;margin-top:1.6em}
-  .step-num{display:inline-flex;align-items:center;justify-content:center;width:1.6em;height:1.6em;
-        border-radius:50%;background:var(--red);color:#fff;font-family:var(--mono);font-size:12px;
-        font-weight:700;flex:none}
-  .step-head{display:flex;align-items:center;gap:.7em}
-  .reveal-box{background:var(--ink);border:1.5px dashed var(--grey-dark);border-radius:8px;
-        padding:1em 1.2em;font-size:16px;color:var(--grey);min-height:2.4em}
-  .reveal-box.filled{color:var(--paper);border-style:solid;border-color:#2F9E58}
+  @media (prefers-reduced-motion:reduce){.bigtimer.flash{animation:none;color:#FF3D67}}
+
+  .pastebox{font-family:var(--sans);font-size:17px;line-height:1.5;padding:1em 1.1em;
+       border-radius:12px;border:2px solid var(--grey-dark);background:var(--ink-soft);
+       color:var(--paper);width:min(90vw,44em);min-height:5em;resize:vertical;margin-bottom:1em}
+  .pastebox::placeholder{color:var(--grey)}
+  .pastebox:disabled{opacity:.5}
+
+  .outputcard{background:var(--wash);color:var(--ink);border-radius:18px;padding:1.5em 1.8em;
+       font-size:clamp(16px,2.6vw,19px);line-height:1.5;max-width:min(90vw,46em);
+       margin-bottom:1.6em;box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:left}
+
+  .compare{display:grid;grid-template-columns:1fr;gap:1em;max-width:min(90vw,40em);margin-bottom:1.4em}
+  .compare .box{background:var(--wash);color:var(--ink);border-radius:14px;padding:1.1em 1.4em;
+       text-align:left;font-size:15.5px}
+  .compare .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+       color:var(--red);font-weight:700;display:block;margin-bottom:.4em}
+
+  .skip{position:fixed;bottom:2.2vh;right:2.4vw;font-size:12px;color:var(--grey);
+       background:none;border:none;cursor:pointer;text-decoration:underline;opacity:.6}
+  .skip:hover{opacity:1}
+
+  /* ================= THE DOCUMENT (below the app) ================= */
+  .doc{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;
+       padding:6vh 6vw 12vh;max-width:56rem;margin:0 auto}
+  .doc h2{font-weight:900;font-size:13px;text-transform:uppercase;letter-spacing:.16em;
+       color:var(--red);margin:5.5vh 0 1.4vh;padding-top:2vh;border-top:2px solid var(--ink)}
+  .doc h2:first-of-type{margin-top:0;padding-top:0;border-top:none}
+  .doc p{max-width:66ch;margin-bottom:1em;font-size:15.5px}
+  .doc .f{font-family:var(--mono);font-size:.9em;background:#fff;border:1px solid var(--line);
+       border-radius:4px;padding:.08em .4em}
+  .doc ul.check{list-style:none;margin:0 0 1.5em}
+  .doc ul.check li{display:flex;gap:.6em;align-items:flex-start;max-width:60ch;
+       border-bottom:1px solid var(--line);padding:.55em 0;font-size:14.5px}
+  .doc ul.check li::before{content:"☐";color:var(--red);flex:none}
+  .doc table{border-collapse:collapse;width:100%;font-size:14px;margin:1vh 0 2vh}
+  .doc th{text-align:left;color:var(--red);font-size:10.5px;letter-spacing:.1em;
+       text-transform:uppercase;padding:.5em .8em .5em 0;border-bottom:2px solid var(--ink)}
+  .doc td{padding:.6em .8em .6em 0;border-bottom:1px solid var(--line);vertical-align:top}
+  .doc .bank{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6em;margin:1vh 0 2vh}
+  .doc .bank div{background:#fff;border:1px solid var(--line);border-radius:7px;padding:.7em .9em;font-size:13.5px}
+  .reveal-toggle{background:var(--ink);color:var(--paper);border:none;border-radius:8px;
+       padding:.7em 1.1em;font-size:13.5px;font-weight:700;cursor:pointer;margin:.5vh 0 1.5vh}
+  .reveal-text{display:none;background:var(--ink);color:var(--paper);border-radius:8px;
+       padding:1.2em 1.4em;font-size:15px;line-height:1.55;max-width:56ch;margin-bottom:2vh}
+  .reveal-text.shown{display:block}
+  .foot{color:var(--grey-dark);font-size:13px;margin-top:4vh}
 </style>
 </head>
 <body>
 
-<div class="brand">i.c.stars <span class="star">*</span> <span class="mke">Milwaukee</span></div>
-<div class="kicker">Guided Tech Learning · Stoke</div>
-<h1>Prompt<br>Pictionary</h1>
-<p class="lede">Pictionary, except the "drawing" is whatever an AI produces from a prompt
-nobody but the prompt-writer can see. Genuinely fun to play — the point only reveals
-itself in the very last sentence.</p>
-<div class="meta">
-  <span><b>Group size:</b> 6–30</span>
-  <span><b>Time:</b> 10 minutes</span>
-  <span><b>Needs:</b> two devices per pair, an AI tool</span>
-  <span><b>Format:</b> in person or virtual</span>
-</div>
+<!-- ============================================================ -->
+<!-- THE APP — one screen at a time                                -->
+<!-- ============================================================ -->
+<div class="app">
+  <div class="dots" id="dots"></div>
+  <div class="screens">
 
-<h2>The Card — what to say to the room</h2>
+    <section class="screen active" data-screen="0">
+      <div class="big-emoji">🎨</div>
+      <h1 class="headline">Let's play a guessing game!</h1>
+      <p class="subline">One of you picks a <b>secret card</b>. You ask a computer to
+      make the thing on the card. Your friend has to <b>guess</b> what the card said —
+      just from what the computer made!</p>
+      <button class="bigbtn" data-next>Let's Play →</button>
+    </section>
 
-<div class="cardbox">
-  <span class="ttl">Read this aloud</span>
-  <ol>
-    <li>Pair up, <b>across teams</b> — each person needs their own device.</li>
-    <li>A draws a secret card. <b>Only A sees it.</b> It's a finished thing — a haiku, a
-        joke, a tiny story — never software, never anything that takes more than a few
-        seconds for an AI to produce.</li>
-    <li>A writes a prompt and runs it through an AI, privately, trying to get the AI to
-        produce that exact thing. <b>B never sees the card, and never sees A's prompt</b> —
-        only whatever the AI actually generated.</li>
-    <li>A reveals just the AI's output. B reads it and has to guess what the secret card
-        said.</li>
-    <li>Reveal the real card. How close was it?</li>
-    <li>Swap and go again.</li>
-  </ol>
-</div>
-
-<h3>The card bank</h3>
-<div class="bank">
-  <div>A haiku about losing your car keys</div>
-  <div>A knock-knock joke about a cat</div>
-  <div>A three-sentence horror story set in a vending machine</div>
-  <div>A toast for a friend's birthday, way too dramatic</div>
-  <div>A diary entry written from a dog's point of view</div>
-  <div>A breakup text message that's weirdly formal</div>
-  <div>A recipe for "the worst sandwich imaginable"</div>
-  <div>A fake movie title with a one-line pitch</div>
-  <div>An apology note from a cat who knocked something off a table</div>
-  <div>A weather forecast for a made-up planet</div>
-  <div>A superhero origin story in exactly two sentences</div>
-  <div>A limerick about a broken printer</div>
-</div>
-
-<div class="tip"><b>Tip:</b> the best rounds happen when A's prompt is specific but not a
-giveaway. "Write a haiku about losing keys" is almost cheating — the fun is in how much
-gets lost (or survives) on the way from A's head to B's guess.</div>
-
-<h2>Run It Live — the tool</h2>
-<p>Use this on one screen per pair, or one shared screen with A looking away during their
-turn. Each step only unlocks the next once it's done, so nobody skips ahead by accident.</p>
-
-<div class="tool">
-  <div class="tool-grid">
-
-    <div class="tool-card">
-      <div class="step-head"><span class="step-num">1</span>
-        <span class="tool-label">Secret card — A's eyes only</span></div>
-      <div id="cardDisplay" class="card-display">Press Draw. Don't let B see this screen.</div>
-      <div class="tool-row">
-        <button id="drawBtn" class="btn">🎴 Draw a Card</button>
-        <button id="hideBtn" class="btn btn-ghost" disabled>🙈 I've got it — hide it</button>
+    <section class="screen" data-screen="1">
+      <div class="whisper">Person A only</div>
+      <div class="big-emoji">🤫</div>
+      <h1 class="headline">Pick a card. Keep it secret!</h1>
+      <p class="subline">Don't show your friend this screen.</p>
+      <div id="cardDisplay" class="card-hidden">Press the button below.</div>
+      <div class="btnrow">
+        <button id="drawBtn" class="bigbtn">🎴 Pick a Card</button>
+        <button id="hideBtn" class="bigbtn green" disabled>I've got it — hide it! →</button>
       </div>
-    </div>
+    </section>
 
-    <div class="tool-card">
-      <div class="step-head"><span class="step-num">2</span>
-        <span class="tool-label">A's turn — write the prompt, run it, privately</span></div>
-      <p class="tool-sub">Go to your AI tool now. B shouldn't be watching your screen.</p>
-      <div class="tool-row">
-        <button id="prepTimerBtn" class="btn" disabled>⏱ Start 90s Prep Timer</button>
-        <span id="prepTimer" class="timer">90</span>
+    <section class="screen" data-screen="2">
+      <div class="whisper">Person A only — still secret</div>
+      <div class="big-emoji">🤖</div>
+      <h1 class="headline">Tell a computer to make it!</h1>
+      <p class="subline">Open your AI tool. Ask it to make the thing on your card.
+      <b>Don't show your friend yet.</b></p>
+      <div id="prepTimer" class="bigtimer">90</div>
+      <div class="btnrow">
+        <button id="prepTimerBtn" class="bigbtn">⏱ Start the Clock</button>
+        <button id="prepSkipBtn" class="bigbtn green">✅ Done — Show My Friend →</button>
       </div>
-    </div>
+    </section>
 
-    <div class="tool-card">
-      <div class="step-head"><span class="step-num">3</span>
-        <span class="tool-label">Reveal to B — paste the AI's OUTPUT only, never your prompt</span></div>
-      <textarea id="outputBox" class="write-box" disabled
-                placeholder="Paste exactly what the AI produced, nothing else…"></textarea>
-      <div class="tool-row">
-        <button id="revealBtn" class="btn btn-primary" disabled>👁 Reveal to B</button>
+    <section class="screen" data-screen="3">
+      <div class="whisper">Person A only — almost there</div>
+      <div class="big-emoji">📋</div>
+      <h1 class="headline">Paste what the computer made</h1>
+      <p class="subline">Only what it <b>made</b> — not what you typed to ask for it!</p>
+      <textarea id="outputBox" class="pastebox" disabled
+                placeholder="Paste the computer's answer here…"></textarea>
+      <button id="revealBtn" class="bigbtn green" disabled>👀 Show My Friend →</button>
+    </section>
+
+    <section class="screen" data-screen="4">
+      <div class="whisper">Person B's turn</div>
+      <div class="big-emoji">🧐</div>
+      <h1 class="headline">What was the secret card?</h1>
+      <p class="subline">Here's what the computer made. Say your best guess out loud!
+      <b>Person A — zip it</b> until time's up.</p>
+      <div id="outputCard" class="outputcard">(nothing yet)</div>
+      <div id="guessTimer" class="bigtimer">45</div>
+      <div class="btnrow">
+        <button id="guessTimerBtn" class="bigbtn">⏱ Start the Clock</button>
+        <button id="guessSkipBtn" class="bigbtn green">✅ Guessed — Show the Answer →</button>
       </div>
-      <div id="revealBox" class="reveal-box">B's guess appears here once you reveal.</div>
-    </div>
+    </section>
 
-    <div class="tool-card">
-      <div class="step-head"><span class="step-num">4</span>
-        <span class="tool-label">B guesses out loud</span></div>
-      <p class="tool-sub">A stays silent — no confirming, no denying, until time's up.</p>
-      <div class="tool-row">
-        <button id="guessTimerBtn" class="btn" disabled>⏱ Start 45s Guess Timer</button>
-        <span id="guessTimer" class="timer">45</span>
+    <section class="screen" data-screen="5">
+      <div class="big-emoji">🎉</div>
+      <h1 class="headline">Let's see the answer!</h1>
+      <div id="compare" class="compare"></div>
+      <div class="btnrow">
+        <button id="playAgainBtn" class="bigbtn">🔁 Swap Turns, Play Again</button>
       </div>
-    </div>
-
-    <div class="tool-card">
-      <div class="step-head"><span class="step-num">5</span>
-        <span class="tool-label">The reveal</span></div>
-      <button id="compareBtn" class="btn" disabled>🃏 Show the Secret Card</button>
-      <div id="compareBox" class="reveal-box">The original card appears here for comparison.</div>
-    </div>
+    </section>
 
   </div>
-  <div class="tool-actions">
-    <button id="resetBtn" class="btn btn-ghost">↺ New Round</button>
+  <button class="skip" id="aboutBtn">why are we doing this? (ask after a few rounds)</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- THE DOCUMENT — for whoever's running this                     -->
+<!-- ============================================================ -->
+<div class="doc">
+
+  <h2>For Whoever's Running This</h2>
+  <p>Everything above is the app two people actually use. This part is for you —
+  the plain version of the same rules, plus what to have ready.</p>
+
+  <h2>The Rules, Plainly</h2>
+  <ul class="check">
+    <li>Pair up, across teams, one device each.</li>
+    <li>A draws a card — a finished text thing (a haiku, a joke, a tiny story). B never
+        sees it, and never sees A's prompt either — only what the AI produces.</li>
+    <li>A writes a prompt and runs it privately, trying to get the AI to make that thing.</li>
+    <li>A reveals only the output. B guesses the secret card from that alone.</li>
+    <li>Reveal the real card. Compare. Swap and go again.</li>
+  </ul>
+
+  <h2>Materials Checklist</h2>
+  <ul class="check">
+    <li>Everyone's own device, AI tool open and logged in beforehand — not during.</li>
+    <li>A way to keep A's screen private from B during steps 1–3 of the app.</li>
+    <li>Pairs assigned across teams ahead of time, not self-selected.</li>
+    <li><b>If virtual:</b> breakout rooms with pairs pre-built, posted in chat before
+        opening — A's privacy is automatic, just their own window.</li>
+  </ul>
+
+  <h2>The Card Bank</h2>
+  <div class="bank">
+    <div>A haiku about losing your car keys</div>
+    <div>A knock-knock joke about a cat</div>
+    <div>A three-sentence horror story set in a vending machine</div>
+    <div>A toast for a friend's birthday, way too dramatic</div>
+    <div>A diary entry written from a dog's point of view</div>
+    <div>A breakup text message that's weirdly formal</div>
+    <div>A recipe for "the worst sandwich imaginable"</div>
+    <div>A fake movie title with a one-line pitch</div>
+    <div>An apology note from a cat who knocked something off a table</div>
+    <div>A weather forecast for a made-up planet</div>
+    <div>A superhero origin story in exactly two sentences</div>
+    <div>A limerick about a broken printer</div>
   </div>
-</div>
+  <p>The app draws from this bank automatically, no repeats until all twelve are used.</p>
 
-<h2>Materials Checklist</h2>
+  <h2>Things That Go Wrong</h2>
+  <table>
+    <tr><th>What happens</th><th>What you do</th></tr>
+    <tr><td>A's prompt basically restates the card word for word</td>
+        <td>Allowed, but it's the boring version — encourage leaving something out next round.</td></tr>
+    <tr><td>B peeks at A's screen during the secret steps</td>
+        <td>"Eyes on your own device until it's revealed."</td></tr>
+    <tr><td>A reacts visibly while B is guessing</td>
+        <td>"Poker face — not one word or face until time's up."</td></tr>
+    <tr><td>The AI output is nothing like the card</td>
+        <td>Great round, not a failed one — read the real prompt aloud and diagnose where it drifted.</td></tr>
+  </table>
 
-<p><b>Everyone needs:</b></p>
-<ul class="check">
-  <li><label>Their own device, with an AI tool open and logged in beforehand</label></li>
-  <li><label>A way for A to keep their screen private from B during steps 1–2</label></li>
-</ul>
+  <button class="reveal-toggle" id="revealWhy">🤫 Click to see the actual point of this (read it after a few rounds, not before)</button>
+  <div class="reveal-text" id="whyText">
+    "Notice the chain that just happened: A had something exact in mind. It passed
+    through A's prompt, then through the AI's interpretation of that prompt, before B
+    ever saw anything. Something got lost — or survived — at each step, and B only had
+    the last link in that chain to guess from. That's the next forty minutes, except the
+    auditor is guessing at your intent from your repo, not a poem about your car keys."
+    <br><br>Say it once, out loud, don't repeat it, then move straight into the work.
+  </div>
 
-<p style="margin-top:2.5vh"><b>You need:</b></p>
-<ul class="check">
-  <li><label>Pairs assigned across teams, not self-selected</label></li>
-  <li><label>One example round run yourself beforehand, so you know the pacing</label></li>
-</ul>
-
-<p style="margin-top:2.5vh"><b>If virtual, also need:</b></p>
-<ul class="check">
-  <li><label>Breakout rooms with pairs pre-built and posted in chat before opening</label></li>
-  <li><label>A plan for A to keep their screen private — a second tab/window is enough, no
-      special tooling needed, since A is just not sharing during their own turn</label></li>
-</ul>
-
-<h2>Run Sheet — step by step</h2>
-
-<h3>Setup</h3>
-<ol class="steps">
-  <li>Confirm every device has an AI tool open and ready — not during the round.</li>
-  <li>Say the rule once: <span class="f">"A sees the card. B never does, and never sees A's
-      prompt either — only whatever the AI produces. Once B is guessing, A says nothing
-      until time's up."</span></li>
-  <li>Pair people up, across teams — count off, don't self-select.</li>
-  <li>Point to one person per pair: <span class="f">"You're A first."</span></li>
-</ol>
-
-<h3>Round 1 (≈4 min)</h3>
-<ol class="steps">
-  <li>Say: <span class="f">"A — draw a card. Read it, then hide it. Don't show B."</span></li>
-  <li>Say: <span class="f">"Ninety seconds — write a prompt, run it on your AI tool, get the
-      output ready. B, look away."</span></li>
-  <li>Time 90 seconds.</li>
-  <li>Call time: <span class="f">"A — reveal just the output to B. Not your prompt."</span></li>
-  <li>Say: <span class="f">"B — forty-five seconds, guess out loud what the secret card
-      said. A, not one word."</span></li>
-  <li>Time 45 seconds.</li>
-  <li>Call time: <span class="f">"A — show the real card. How close was it?"</span></li>
-</ol>
-
-<h3>Round 2 (≈4 min)</h3>
-<ol class="steps">
-  <li>Say: <span class="f">"Swap. B draws now."</span></li>
-  <li>Repeat Round 1's steps with roles reversed.</li>
-</ol>
-
-<h3>Land It (≈2 min)</h3>
-<ol class="steps">
-  <li>Ask the room: <span class="f">"Whose guess was closest? What gave it away — or what
-      threw you off?"</span> Take a couple of answers, let people enjoy comparing.</li>
-  <li>Then say this once, clearly, and don't repeat it — see below.</li>
-  <li>Move straight into the work. No lingering on the connection.</li>
-</ol>
-
-<div class="quote">
-  "Notice the chain that just happened: A had something exact in mind. It passed through
-  A's prompt, then through the AI's interpretation of that prompt, before B ever saw
-  anything. Something got lost — or survived — at each step, and B only had the last link
-  in that chain to guess from. That's the next forty minutes, except the auditor is
-  guessing at your intent from your repo, not a poem about your car keys."
-</div>
-
-<p style="color:var(--grey-dark);font-size:15px">That's the only connection-to-the-work
-sentence in the whole session. Say it once, don't repeat it.</p>
-
-<h2>Things That Go Wrong</h2>
-
-<table>
-  <tr><th>What happens</th><th>What you do</th></tr>
-  <tr><td>A's prompt basically restates the card word for word</td>
-      <td>That's allowed but it's the boring version — encourage it once between rounds:
-          "Try leaving something out and see if it still lands."</td></tr>
-  <tr><td>B peeks at A's screen during steps 1–2</td>
-      <td>Call it gently: "Eyes on your own device until it's revealed."</td></tr>
-  <tr><td>A reveals the prompt along with the output, out of habit</td>
-      <td>Stop it before B reads anything: "Output only — cover the top part."</td></tr>
-  <tr><td>A reacts visibly while B is guessing, giving it away</td>
-      <td>Call it once: "Poker face — not one word or face until time's up."</td></tr>
-  <tr><td>The AI output is nothing like the card</td>
-      <td>That's a great round, not a failed one — ask A to read their exact prompt out loud
-          during the reveal and let the room diagnose where it drifted.</td></tr>
-</table>
-
-<h2>Running It Virtually</h2>
-
-<p>Same mechanic, same timing. Two adjustments:</p>
-<ul>
-  <li><b>Breakout rooms, pre-built pairs</b> — post pairings in chat before opening breakouts.</li>
-  <li><b>A's privacy is automatic</b> — A is just working in their own window during steps 1–2,
-      same as in person. Nothing extra to set up.</li>
-</ul>
-
-<h2>What "Done" Looks Like</h2>
-
-<p>The room had a genuinely fun ten minutes, compared a few wildly-off guesses, and only in
-the last sentence connected it to their own repo. If people are still debating whether B's
-guess was close when the closing line lands, that's exactly right — the fun isn't a wrapper
-to strip off, it's what makes the turn land.</p>
-
-<div class="foot">
-  i.c.stars<span class="star">*</span> Milwaukee · Cycle 21 · Guided Tech Learning stoke
+  <div class="foot">i.c.stars Milwaukee · Cycle 21 · Guided Tech Learning stoke</div>
 </div>
 
 <script>
@@ -377,57 +299,73 @@ to strip off, it's what makes the turn land.</p>
       g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (dur || 0.35));
       o.start();
       o.stop(ctx.currentTime + (dur || 0.35));
-    } catch (e) { /* audio not available, silently skip */ }
+    } catch (e) {}
   }
 
+  // ---------- screen router ----------
+  var screens = [].slice.call(document.querySelectorAll('.screen'));
+  var dotsEl = document.getElementById('dots');
+  var current = 0;
+  screens.forEach(function(){
+    var d = document.createElement('span');
+    d.className = 'dot';
+    dotsEl.appendChild(d);
+  });
+  var dots = [].slice.call(dotsEl.querySelectorAll('.dot'));
+
+  function goTo(n){
+    screens[current].classList.remove('active');
+    current = n;
+    screens[current].classList.add('active');
+    dots.forEach(function(d, i){
+      d.classList.toggle('active', i === current);
+      d.classList.toggle('done', i < current);
+    });
+  }
+  goTo(0);
+
+  [].slice.call(document.querySelectorAll('[data-next]')).forEach(function(btn){
+    btn.addEventListener('click', function(){ goTo(current + 1); });
+  });
+
+  // ---------- game state ----------
   var currentCard = null;
 
   var cardDisplay = document.getElementById('cardDisplay');
   var drawBtn = document.getElementById('drawBtn');
   var hideBtn = document.getElementById('hideBtn');
-  var prepTimerBtn = document.getElementById('prepTimerBtn');
-  var prepTimerEl = document.getElementById('prepTimer');
-  var outputBox = document.getElementById('outputBox');
-  var revealBtn = document.getElementById('revealBtn');
-  var revealBox = document.getElementById('revealBox');
-  var guessTimerBtn = document.getElementById('guessTimerBtn');
-  var guessTimerEl = document.getElementById('guessTimer');
-  var compareBtn = document.getElementById('compareBtn');
-  var compareBox = document.getElementById('compareBox');
-
-  var prepInterval = null, guessInterval = null;
 
   drawBtn.addEventListener('click', function(){
     hideBtn.disabled = true;
     if (reduceMotion) {
-      cardDisplay.classList.remove('spinning');
       currentCard = drawCard();
+      cardDisplay.className = 'card-shown';
       cardDisplay.textContent = currentCard;
       hideBtn.disabled = false;
       return;
     }
-    cardDisplay.classList.add('spinning');
+    cardDisplay.className = 'card-hidden';
     var ticks = 0, maxTicks = 10;
     var spin = setInterval(function(){
       cardDisplay.textContent = CARDS[Math.floor(Math.random() * CARDS.length)];
       ticks++;
       if (ticks >= maxTicks) {
         clearInterval(spin);
-        cardDisplay.classList.remove('spinning');
         currentCard = drawCard();
+        cardDisplay.className = 'card-shown';
         cardDisplay.textContent = currentCard;
         hideBtn.disabled = false;
       }
     }, 70);
   });
 
-  hideBtn.addEventListener('click', function(){
-    cardDisplay.classList.remove('spinning', 'big-reveal');
-    cardDisplay.classList.add('hidden-card');
-    cardDisplay.textContent = '🙈 Hidden. A — go write your prompt.';
-    hideBtn.disabled = true;
-    prepTimerBtn.disabled = false;
-  });
+  hideBtn.addEventListener('click', function(){ goTo(2); });
+
+  // prep timer (screen 2)
+  var prepTimerBtn = document.getElementById('prepTimerBtn');
+  var prepTimerEl = document.getElementById('prepTimer');
+  var prepSkipBtn = document.getElementById('prepSkipBtn');
+  var prepInterval = null;
 
   prepTimerBtn.addEventListener('click', function(){
     if (prepInterval) return;
@@ -445,23 +383,36 @@ to strip off, it's what makes the turn land.</p>
         prepTimerEl.textContent = '0';
         prepTimerEl.classList.add('flash');
         beep(660, 0.5);
-        outputBox.disabled = false;
-        outputBox.focus();
       }
     }, 1000);
   });
+  // "Done" is available the whole time on purpose - this page has no way to verify
+  // work happening in another tab, so the clock is a pacing aid, not a lock
+  prepSkipBtn.addEventListener('click', function(){
+    clearInterval(prepInterval); prepInterval = null;
+    outputBox.disabled = false;
+    goTo(3);
+  });
+
+  // paste + reveal (screen 3)
+  var outputBox = document.getElementById('outputBox');
+  var revealBtn = document.getElementById('revealBtn');
+  var outputCard = document.getElementById('outputCard');
 
   outputBox.addEventListener('input', function(){
-    revealBtn.disabled = outputBox.disabled || !outputBox.value.trim();
+    revealBtn.disabled = !outputBox.value.trim();
   });
 
   revealBtn.addEventListener('click', function(){
-    revealBox.textContent = outputBox.value.trim();
-    revealBox.classList.add('filled');
-    outputBox.disabled = true;
-    revealBtn.disabled = true;
-    guessTimerBtn.disabled = false;
+    outputCard.textContent = outputBox.value.trim();
+    goTo(4);
   });
+
+  // guess timer (screen 4)
+  var guessTimerBtn = document.getElementById('guessTimerBtn');
+  var guessTimerEl = document.getElementById('guessTimer');
+  var guessSkipBtn = document.getElementById('guessSkipBtn');
+  var guessInterval = null;
 
   guessTimerBtn.addEventListener('click', function(){
     if (guessInterval) return;
@@ -479,44 +430,56 @@ to strip off, it's what makes the turn land.</p>
         guessTimerEl.textContent = '0';
         guessTimerEl.classList.add('flash');
         beep(440, 0.6);
-        compareBtn.disabled = false;
       }
     }, 1000);
   });
-
-  compareBtn.addEventListener('click', function(){
-    compareBox.textContent = currentCard || '(no card drawn this round)';
-    compareBox.classList.add('filled');
-    compareBtn.disabled = true;
+  // "Guessed already" is available any time, same reasoning as the prep screen -
+  // B might nail it in ten seconds and there's no reason to make them wait
+  guessSkipBtn.addEventListener('click', function(){
+    clearInterval(guessInterval); guessInterval = null;
+    showCompare();
   });
 
-  document.getElementById('resetBtn').addEventListener('click', function(){
+  function showCompare(){
+    var compare = document.getElementById('compare');
+    compare.innerHTML =
+      '<div class="box"><span class="lbl">What the computer made</span>' + outputCard.textContent + '</div>' +
+      '<div class="box"><span class="lbl">The real secret card</span>' + (currentCard || '') + '</div>';
+    goTo(5);
+  }
+
+  // play again — reset everything, loop to screen 1
+  document.getElementById('playAgainBtn').addEventListener('click', function(){
     clearInterval(prepInterval); prepInterval = null;
     clearInterval(guessInterval); guessInterval = null;
     currentCard = null;
 
-    cardDisplay.classList.remove('spinning', 'hidden-card', 'big-reveal');
-    cardDisplay.textContent = "Press Draw. Don't let B see this screen.";
+    cardDisplay.className = 'card-hidden';
+    cardDisplay.textContent = 'Press the button below.';
     hideBtn.disabled = true;
 
     prepTimerEl.textContent = '90';
     prepTimerEl.classList.remove('low', 'flash');
-    prepTimerBtn.disabled = true;
+    prepTimerBtn.disabled = false;
 
     outputBox.value = '';
     outputBox.disabled = true;
     revealBtn.disabled = true;
-
-    revealBox.textContent = "B's guess appears here once you reveal.";
-    revealBox.classList.remove('filled');
+    outputCard.textContent = '(nothing yet)';
 
     guessTimerEl.textContent = '45';
     guessTimerEl.classList.remove('low', 'flash');
-    guessTimerBtn.disabled = true;
+    guessTimerBtn.disabled = false;
 
-    compareBox.textContent = 'The original card appears here for comparison.';
-    compareBox.classList.remove('filled');
-    compareBtn.disabled = true;
+    goTo(1);
+  });
+
+  // the "why" reveal, tucked away on purpose
+  document.getElementById('aboutBtn').addEventListener('click', function(){
+    document.querySelector('.doc').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
+  document.getElementById('revealWhy').addEventListener('click', function(){
+    document.getElementById('whyText').classList.toggle('shown');
   });
 })();
 </script>
