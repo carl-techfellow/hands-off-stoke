@@ -13,8 +13,17 @@
     --sans:"Segoe UI","Helvetica Neue",Arial,sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%}
-  body{background:var(--ink);color:var(--paper);font-family:var(--sans);overflow-x:hidden}
+  html,body{height:100%;overflow-x:hidden}
+  body{background:var(--ink);color:var(--paper);font-family:var(--sans)}
+  /* long words (pasted AI output, odd card text) can't force a sideways scroll */
+  .headline,.subline,.card-shown,.outputcard,.rules-box li,.compare .box{overflow-wrap:break-word}
+  /* very narrow phones: tighten the frame so nothing crowds the edges */
+  @media (max-width:420px){
+    .screen{padding:3vh 4vw 5vh}
+    .rules-box{max-width:92vw;padding:.9em 1em}
+    .rules-box li{font-size:13.5px}
+    .bigbtn{padding:.85em 1.3em;font-size:15px}
+  }
 
   /* ================= THE APP ================= */
   .app{position:relative;min-height:100svh;display:flex;flex-direction:column}
@@ -82,6 +91,17 @@
        background:none;border:none;cursor:pointer;text-decoration:underline;opacity:.6}
   .skip:hover{opacity:1}
 
+  .rules-box{background:var(--ink-soft);border-radius:12px;padding:1em 1.3em;
+       text-align:left;max-width:min(88vw,30em);margin:0 0 1.4em;
+       border:1.5px solid #3A3240}
+  .rules-box .rb-head{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+       text-transform:uppercase;color:#FF8FA8;font-weight:700;margin-bottom:.5em;
+       display:block}
+  .rules-box ul{list-style:none;margin:0;padding:0}
+  .rules-box li{display:flex;gap:.55em;font-size:14.5px;line-height:1.4;
+       color:var(--paper);padding:.3em 0}
+  .rules-box li .x{flex:none}
+
   /* ================= THE DOCUMENT (below the app) ================= */
   .doc{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;
        padding:6vh 6vw 12vh;max-width:56rem;margin:0 auto}
@@ -145,6 +165,18 @@
       <h1 class="headline">Tell a computer to make it!</h1>
       <p class="subline">Open your AI tool. Ask it to make the thing on your card.
       <b>Don't show your friend yet.</b></p>
+
+      <div class="rules-box">
+        <span class="rb-head">Your prompt can't:</span>
+        <ul>
+          <li><span class="x">🚫</span> Copy the card's words. Say it your own way.</li>
+          <li><span class="x">🚫</span> Name the thing if that gives it away.</li>
+          <li><span class="x">🚫</span> Mention the game or the guessing.</li>
+          <li><span class="x">🚫</span> Use real names or real info. Make it up.</li>
+          <li><span class="x">🚫</span> Try twice. One shot only!</li>
+        </ul>
+      </div>
+
       <div id="prepTimer" class="bigtimer">90</div>
       <div class="btnrow">
         <button id="prepTimerBtn" class="bigbtn">⏱ Start the Clock</button>
@@ -203,7 +235,10 @@
     <li>Pair up, across teams, one device each.</li>
     <li>A draws a card — a finished text thing (a haiku, a joke, a tiny story). B never
         sees it, and never sees A's prompt either — only what the AI produces.</li>
-    <li>A writes a prompt and runs it privately, trying to get the AI to make that thing.</li>
+    <li>A writes a prompt and runs it privately, trying to get the AI to make that thing.
+        The prompt can't copy the card's own wording, can't name the format if that's a
+        giveaway, can't mention the game, can't use real data, and only gets one try —
+        the app shows this list to A on its own screen.</li>
     <li>A reveals only the output. B guesses the secret card from that alone.</li>
     <li>Reveal the real card. Compare. Swap and go again.</li>
   </ul>
@@ -238,7 +273,11 @@
   <table>
     <tr><th>What happens</th><th>What you do</th></tr>
     <tr><td>A's prompt basically restates the card word for word</td>
-        <td>Allowed, but it's the boring version — encourage leaving something out next round.</td></tr>
+        <td>Against the rules now, not just boring — the app lists this under "your
+            prompt can't." Have them try again: say it in their own words instead.</td></tr>
+    <tr><td>A names the exact format out loud ("write a haiku...")</td>
+        <td>Also against the rules if it's a giveaway — redirect to describing the shape
+            instead ("three lines, short-long-short").</td></tr>
     <tr><td>B peeks at A's screen during the secret steps</td>
         <td>"Eyes on your own device until it's revealed."</td></tr>
     <tr><td>A reacts visibly while B is guessing</td>
