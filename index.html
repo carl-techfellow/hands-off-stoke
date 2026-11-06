@@ -27,6 +27,12 @@
 
   /* ================= THE APP ================= */
   .app{position:relative;min-height:100svh;display:flex;flex-direction:column}
+  .banner{text-align:center;font-family:var(--mono);font-size:clamp(11px,1.5vw,13px);
+       letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:.85em 1.2em;
+       transition:background .3s ease,color .3s ease;line-height:1.4}
+  .banner.idle{background:var(--ink-soft);color:var(--grey)}
+  .banner.secret{background:var(--red);color:#fff}
+  .banner.show{background:var(--green);color:#fff}
   .dots{display:flex;gap:.5em;justify-content:center;padding:3.2vh 0 1vh}
   .dot{width:10px;height:10px;border-radius:50%;background:#3A3240;transition:background .25s}
   .dot.done{background:var(--green)}
@@ -82,6 +88,8 @@
   .pastebox::placeholder{color:var(--grey)}
   .pastebox:disabled{opacity:.5}
 
+  .out-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+       color:#FF8FA8;font-weight:700;display:block;margin-bottom:.5em}
   .outputcard{background:var(--wash);color:var(--ink);border-radius:18px;padding:1.5em 1.8em;
        font-size:clamp(16px,2.6vw,19px);line-height:1.5;max-width:min(90vw,46em);
        margin-bottom:1.6em;box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:left}
@@ -161,6 +169,7 @@
 <!-- THE APP — one screen at a time                                -->
 <!-- ============================================================ -->
 <div class="app">
+  <div class="banner idle" id="banner">A guessing game for two people</div>
   <div class="dots" id="dots"></div>
   <div class="screens">
 
@@ -243,9 +252,11 @@
     <section class="screen" data-screen="4">
       <div class="whisper">Person B's turn</div>
       <div class="big-emoji">🧐</div>
-      <h1 class="headline">What was the secret card?</h1>
-      <p class="subline">Here's what the computer made. Say your best guess out loud!
-      <b>Person A — zip it</b> until time's up.</p>
+      <h1 class="headline">What task was A given?</h1>
+      <p class="subline">Person A got a <b>secret task</b> and asked a computer to do it.
+      Below is only what the computer made. <b>Guess the task</b> — you have 45 seconds.
+      Person A, zip it until time's up.</p>
+      <span class="out-label">What the computer made</span>
       <div id="outputCard" class="outputcard">(nothing yet)</div>
       <div id="guessTimer" class="bigtimer">45</div>
       <div class="btnrow">
@@ -256,7 +267,7 @@
 
     <section class="screen" data-screen="5">
       <div class="big-emoji">🎉</div>
-      <h1 class="headline">Let's see the answer!</h1>
+      <h1 class="headline">What was the task?</h1>
       <div id="compare" class="compare"></div>
       <div class="btnrow">
         <button id="playAgainBtn" class="bigbtn">🔁 Swap Turns, Play Again</button>
@@ -286,7 +297,10 @@
         "car," "lost" — and on top of that the prompt can't copy the card's wording, mention
         the game, use real data, or get a second try. The app shows the banned words and the
         rules on A's screen, so you don't have to police them yourself.</li>
-    <li>A reveals only the output. B guesses the secret card from that alone.</li>
+    <li>A reveals only the output. <b>B's job is to guess the task A was given</b> — not to
+        critique the writing — and they get 45 seconds. The app carries a red
+        "don't share your screen yet" banner through every secret step and flips it green
+        the moment it's safe to show, which matters most on virtual days.</li>
     <li>Reveal the real card. Compare. Swap and go again.</li>
   </ul>
 
@@ -412,12 +426,28 @@
   });
   var dots = [].slice.call(dotsEl.querySelectorAll('.dot'));
 
+  var banner = document.getElementById('banner');
+  var SECRET = [1, 2, 3];
+  function updateBanner(n){
+    if (n === 0) {
+      banner.className = 'banner idle';
+      banner.textContent = 'A guessing game for two people';
+    } else if (SECRET.indexOf(n) > -1) {
+      banner.className = 'banner secret';
+      banner.textContent = '🙈 Person A only — do NOT share your screen yet';
+    } else {
+      banner.className = 'banner show';
+      banner.textContent = '👀 Show your friend — safe to share your screen now';
+    }
+  }
+
   function goTo(n){
     // clear every screen, not just the previous one - keeps exactly one visible
     // even if `current` and the markup ever disagree
     screens.forEach(function(s){ s.classList.remove('active'); });
     current = n;
     screens[current].classList.add('active');
+    updateBanner(current);
     dots.forEach(function(d, i){
       d.classList.toggle('active', i === current);
       d.classList.toggle('done', i < current);
@@ -567,7 +597,7 @@
     var compare = document.getElementById('compare');
     compare.innerHTML =
       '<div class="box"><span class="lbl">What the computer made</span>' + outputCard.textContent + '</div>' +
-      '<div class="box"><span class="lbl">The real secret card</span>' + (currentCard ? currentCard.task : '') + '</div>';
+      '<div class="box"><span class="lbl">The secret task A was given</span>' + (currentCard ? currentCard.task : '') + '</div>';
     goTo(5);
   }
 
