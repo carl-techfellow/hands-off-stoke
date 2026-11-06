@@ -34,8 +34,13 @@
 
   .screens{position:relative;flex:1}
   .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;
-          justify-content:center;text-align:center;padding:4vh 6vw 6vh;opacity:0;
-          transition:opacity .35s ease}
+          text-align:center;padding:4vh 6vw 6vh;opacity:0;
+          transition:opacity .35s ease;
+          /* tall content must stay reachable - without this a long card + its banned
+             words + the rules can overflow a short screen with no way to scroll */
+          overflow-y:auto;
+          justify-content:center;
+          justify-content:safe center}
   .screen.active{display:flex;opacity:1}
   @media (prefers-reduced-motion:reduce){.screen{transition:none}}
 
@@ -102,6 +107,26 @@
        color:var(--paper);padding:.3em 0}
   .rules-box li .x{flex:none}
 
+  /* per-card banned words */
+  .banned{max-width:min(88vw,30em);margin:0 0 1.2em;text-align:center}
+  .banned .bn-head{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+       text-transform:uppercase;color:#FF8FA8;font-weight:700;display:block;margin-bottom:.6em}
+  .banned .chips{display:flex;flex-wrap:wrap;gap:.5em;justify-content:center}
+  .banned .chip{background:rgba(214,0,60,.16);border:1.5px solid var(--red);
+       border-radius:999px;padding:.35em .85em;font-size:15px;font-weight:700;
+       color:#FFC2D1;text-decoration:line-through;text-decoration-thickness:2px}
+
+  /* short screens (landscape phones, small laptops): tighten vertical rhythm */
+  @media (max-height:700px){
+    .big-emoji{font-size:clamp(30px,6vw,44px);margin-bottom:.15em}
+    .headline{font-size:clamp(21px,4vw,32px)}
+    .subline{margin-bottom:.9em}
+    .bigtimer{font-size:clamp(48px,11vw,86px);margin:0 0 .3em}
+    .card-shown{padding:1em 1.3em;margin-bottom:1em}
+    .rules-box,.banned{margin-bottom:.9em}
+    .rules-box li{padding:.2em 0}
+  }
+
   /* ================= THE DOCUMENT (below the app) ================= */
   .doc{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;
        padding:6vh 6vw 12vh;max-width:56rem;margin:0 auto}
@@ -121,6 +146,7 @@
   .doc td{padding:.6em .8em .6em 0;border-bottom:1px solid var(--line);vertical-align:top}
   .doc .bank{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6em;margin:1vh 0 2vh}
   .doc .bank div{background:#fff;border:1px solid var(--line);border-radius:7px;padding:.7em .9em;font-size:13.5px}
+  .doc .bank .bw{font-family:var(--mono);font-size:11.5px;color:var(--red);letter-spacing:.02em}
   .reveal-toggle{background:var(--ink);color:var(--paper);border:none;border-radius:8px;
        padding:.7em 1.1em;font-size:13.5px;font-weight:700;cursor:pointer;margin:.5vh 0 1.5vh}
   .reveal-text{display:none;background:var(--ink);color:var(--paper);border-radius:8px;
@@ -154,11 +180,15 @@
       <p class="subline">Don't show your friend this screen.</p>
       <div id="cardDisplay" class="card-hidden">Press the button below.</div>
 
+      <div class="banned" id="cardBanned" hidden>
+        <span class="bn-head">You can't use these words:</span>
+        <div class="chips"></div>
+      </div>
+
       <div class="rules-box" id="cardRules" hidden>
-        <span class="rb-head">When you ask the computer, you can't:</span>
+        <span class="rb-head">Also, you can't:</span>
         <ul>
           <li><span class="x">🚫</span> Copy the card's words. Say it your own way.</li>
-          <li><span class="x">🚫</span> Name the thing if that gives it away.</li>
           <li><span class="x">🚫</span> Mention the game or the guessing.</li>
           <li><span class="x">🚫</span> Use real names or real info. Make it up.</li>
           <li><span class="x">🚫</span> Try twice. One shot only!</li>
@@ -178,11 +208,15 @@
       <p class="subline">Open your AI tool. Ask it to make the thing on your card.
       <b>Don't show your friend yet.</b></p>
 
+      <div class="banned" id="promptBanned" hidden>
+        <span class="bn-head">Still banned:</span>
+        <div class="chips"></div>
+      </div>
+
       <div class="rules-box">
-        <span class="rb-head">Your prompt can't:</span>
+        <span class="rb-head">Also, you can't:</span>
         <ul>
           <li><span class="x">🚫</span> Copy the card's words. Say it your own way.</li>
-          <li><span class="x">🚫</span> Name the thing if that gives it away.</li>
           <li><span class="x">🚫</span> Mention the game or the guessing.</li>
           <li><span class="x">🚫</span> Use real names or real info. Make it up.</li>
           <li><span class="x">🚫</span> Try twice. One shot only!</li>
@@ -248,9 +282,10 @@
     <li>A draws a card — a finished text thing (a haiku, a joke, a tiny story). B never
         sees it, and never sees A's prompt either — only what the AI produces.</li>
     <li>A writes a prompt and runs it privately, trying to get the AI to make that thing.
-        The prompt can't copy the card's own wording, can't name the format if that's a
-        giveaway, can't mention the game, can't use real data, and only gets one try —
-        the app shows this list to A on its own screen.</li>
+        <b>Every card bans its own giveaway words</b> — the haiku card bans "haiku," "keys,"
+        "car," "lost" — and on top of that the prompt can't copy the card's wording, mention
+        the game, use real data, or get a second try. The app shows the banned words and the
+        rules on A's screen, so you don't have to police them yourself.</li>
     <li>A reveals only the output. B guesses the secret card from that alone.</li>
     <li>Reveal the real card. Compare. Swap and go again.</li>
   </ul>
@@ -266,20 +301,20 @@
 
   <h2>The Card Bank</h2>
   <div class="bank">
-    <div>A haiku about losing your car keys</div>
-    <div>A knock-knock joke about a cat</div>
-    <div>A three-sentence horror story set in a vending machine</div>
-    <div>A toast for a friend's birthday, way too dramatic</div>
-    <div>A diary entry written from a dog's point of view</div>
-    <div>A breakup text message that's weirdly formal</div>
-    <div>A recipe for "the worst sandwich imaginable"</div>
-    <div>A fake movie title with a one-line pitch</div>
-    <div>An apology note from a cat who knocked something off a table</div>
-    <div>A weather forecast for a made-up planet</div>
-    <div>A superhero origin story in exactly two sentences</div>
-    <div>A limerick about a broken printer</div>
+    <div><b>A haiku about losing your car keys</b><br><span class="bw">banned: haiku · keys · car · lost</span></div>
+    <div><b>A knock-knock joke about a cat</b><br><span class="bw">banned: knock · joke · cat · meow</span></div>
+    <div><b>A three-sentence horror story set in a vending machine</b><br><span class="bw">banned: horror · scary · vending · machine · snack</span></div>
+    <div><b>A toast for a friend's birthday, way too dramatic</b><br><span class="bw">banned: toast · birthday · cheers · dramatic</span></div>
+    <div><b>A diary entry written from a dog's point of view</b><br><span class="bw">banned: diary · dog · puppy · bark</span></div>
+    <div><b>A breakup text message that's weirdly formal</b><br><span class="bw">banned: breakup · text · formal · relationship</span></div>
+    <div><b>A recipe for &quot;the worst sandwich imaginable&quot;</b><br><span class="bw">banned: recipe · sandwich · worst · bread</span></div>
+    <div><b>A fake movie title with a one-line pitch</b><br><span class="bw">banned: movie · film · title · pitch</span></div>
+    <div><b>An apology note from a cat who knocked something off a table</b><br><span class="bw">banned: apology · sorry · cat · table · knocked</span></div>
+    <div><b>A weather forecast for a made-up planet</b><br><span class="bw">banned: weather · forecast · planet · temperature</span></div>
+    <div><b>A superhero origin story in exactly two sentences</b><br><span class="bw">banned: superhero · origin · powers · hero</span></div>
+    <div><b>A limerick about a broken printer</b><br><span class="bw">banned: limerick · printer · broken · paper</span></div>
   </div>
-  <p>The app draws from this bank automatically, no repeats until all twelve are used.</p>
+  <p>The app draws from this bank automatically, no repeats until all twelve are used — and it shows each card's banned words on screen, so you don't have to police them yourself.</p>
 
   <h2>Things That Go Wrong</h2>
   <table>
@@ -313,19 +348,32 @@
 
 <script>
 (function(){
+  // each card carries its own banned words - the obvious giveaways for that card
   var CARDS = [
-    "A haiku about losing your car keys",
-    "A knock-knock joke about a cat",
-    "A three-sentence horror story set in a vending machine",
-    "A toast for a friend's birthday, way too dramatic",
-    "A diary entry written from a dog's point of view",
-    "A breakup text message that's weirdly formal",
-    "A recipe for \"the worst sandwich imaginable\"",
-    "A fake movie title with a one-line pitch",
-    "An apology note from a cat who knocked something off a table",
-    "A weather forecast for a made-up planet",
-    "A superhero origin story in exactly two sentences",
-    "A limerick about a broken printer"
+    { task: "A haiku about losing your car keys",
+      banned: ["haiku", "keys", "car", "lost"] },
+    { task: "A knock-knock joke about a cat",
+      banned: ["knock", "joke", "cat", "meow"] },
+    { task: "A three-sentence horror story set in a vending machine",
+      banned: ["horror", "scary", "vending", "machine", "snack"] },
+    { task: "A toast for a friend's birthday, way too dramatic",
+      banned: ["toast", "birthday", "cheers", "dramatic"] },
+    { task: "A diary entry written from a dog's point of view",
+      banned: ["diary", "dog", "puppy", "bark"] },
+    { task: "A breakup text message that's weirdly formal",
+      banned: ["breakup", "text", "formal", "relationship"] },
+    { task: "A recipe for \"the worst sandwich imaginable\"",
+      banned: ["recipe", "sandwich", "worst", "bread"] },
+    { task: "A fake movie title with a one-line pitch",
+      banned: ["movie", "film", "title", "pitch"] },
+    { task: "An apology note from a cat who knocked something off a table",
+      banned: ["apology", "sorry", "cat", "table", "knocked"] },
+    { task: "A weather forecast for a made-up planet",
+      banned: ["weather", "forecast", "planet", "temperature"] },
+    { task: "A superhero origin story in exactly two sentences",
+      banned: ["superhero", "origin", "powers", "hero"] },
+    { task: "A limerick about a broken printer",
+      banned: ["limerick", "printer", "broken", "paper"] }
   ];
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -388,13 +436,31 @@
   var drawBtn = document.getElementById('drawBtn');
   var hideBtn = document.getElementById('hideBtn');
   var cardRules = document.getElementById('cardRules');
+  var cardBanned = document.getElementById('cardBanned');
+  var promptBanned = document.getElementById('promptBanned');
+
+  function renderBanned(card){
+    ['cardBanned','promptBanned'].forEach(function(id){
+      var box = document.getElementById(id);
+      var chips = box.querySelector('.chips');
+      chips.innerHTML = '';
+      card.banned.forEach(function(w){
+        var el = document.createElement('span');
+        el.className = 'chip';
+        el.textContent = w;
+        chips.appendChild(el);
+      });
+      box.hidden = false;
+    });
+  }
 
   drawBtn.addEventListener('click', function(){
     hideBtn.disabled = true;
     if (reduceMotion) {
       currentCard = drawCard();
       cardDisplay.className = 'card-shown';
-      cardDisplay.textContent = currentCard;
+      cardDisplay.textContent = currentCard.task;
+      renderBanned(currentCard);
       hideBtn.disabled = false;
       cardRules.hidden = false;
       return;
@@ -402,13 +468,14 @@
     cardDisplay.className = 'card-hidden';
     var ticks = 0, maxTicks = 10;
     var spin = setInterval(function(){
-      cardDisplay.textContent = CARDS[Math.floor(Math.random() * CARDS.length)];
+      cardDisplay.textContent = CARDS[Math.floor(Math.random() * CARDS.length)].task;
       ticks++;
       if (ticks >= maxTicks) {
         clearInterval(spin);
         currentCard = drawCard();
         cardDisplay.className = 'card-shown';
-        cardDisplay.textContent = currentCard;
+        cardDisplay.textContent = currentCard.task;
+        renderBanned(currentCard);
         hideBtn.disabled = false;
         cardRules.hidden = false;
       }
@@ -500,7 +567,7 @@
     var compare = document.getElementById('compare');
     compare.innerHTML =
       '<div class="box"><span class="lbl">What the computer made</span>' + outputCard.textContent + '</div>' +
-      '<div class="box"><span class="lbl">The real secret card</span>' + (currentCard || '') + '</div>';
+      '<div class="box"><span class="lbl">The real secret card</span>' + (currentCard ? currentCard.task : '') + '</div>';
     goTo(5);
   }
 
@@ -513,6 +580,8 @@
     cardDisplay.className = 'card-hidden';
     cardDisplay.textContent = 'Press the button below.';
     cardRules.hidden = true;
+    cardBanned.hidden = true;
+    promptBanned.hidden = true;
     hideBtn.disabled = true;
 
     prepTimerEl.textContent = '90';
