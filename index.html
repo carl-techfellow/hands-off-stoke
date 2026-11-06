@@ -153,6 +153,18 @@
       <h1 class="headline">Pick a card. Keep it secret!</h1>
       <p class="subline">Don't show your friend this screen.</p>
       <div id="cardDisplay" class="card-hidden">Press the button below.</div>
+
+      <div class="rules-box" id="cardRules" hidden>
+        <span class="rb-head">When you ask the computer, you can't:</span>
+        <ul>
+          <li><span class="x">🚫</span> Copy the card's words. Say it your own way.</li>
+          <li><span class="x">🚫</span> Name the thing if that gives it away.</li>
+          <li><span class="x">🚫</span> Mention the game or the guessing.</li>
+          <li><span class="x">🚫</span> Use real names or real info. Make it up.</li>
+          <li><span class="x">🚫</span> Try twice. One shot only!</li>
+        </ul>
+      </div>
+
       <div class="btnrow">
         <button id="drawBtn" class="bigbtn">🎴 Pick a Card</button>
         <button id="hideBtn" class="bigbtn green" disabled>I've got it — hide it! →</button>
@@ -353,7 +365,9 @@
   var dots = [].slice.call(dotsEl.querySelectorAll('.dot'));
 
   function goTo(n){
-    screens[current].classList.remove('active');
+    // clear every screen, not just the previous one - keeps exactly one visible
+    // even if `current` and the markup ever disagree
+    screens.forEach(function(s){ s.classList.remove('active'); });
     current = n;
     screens[current].classList.add('active');
     dots.forEach(function(d, i){
@@ -373,6 +387,7 @@
   var cardDisplay = document.getElementById('cardDisplay');
   var drawBtn = document.getElementById('drawBtn');
   var hideBtn = document.getElementById('hideBtn');
+  var cardRules = document.getElementById('cardRules');
 
   drawBtn.addEventListener('click', function(){
     hideBtn.disabled = true;
@@ -381,6 +396,7 @@
       cardDisplay.className = 'card-shown';
       cardDisplay.textContent = currentCard;
       hideBtn.disabled = false;
+      cardRules.hidden = false;
       return;
     }
     cardDisplay.className = 'card-hidden';
@@ -394,6 +410,7 @@
         cardDisplay.className = 'card-shown';
         cardDisplay.textContent = currentCard;
         hideBtn.disabled = false;
+        cardRules.hidden = false;
       }
     }, 70);
   });
@@ -495,6 +512,7 @@
 
     cardDisplay.className = 'card-hidden';
     cardDisplay.textContent = 'Press the button below.';
+    cardRules.hidden = true;
     hideBtn.disabled = true;
 
     prepTimerEl.textContent = '90';
