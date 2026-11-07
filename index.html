@@ -33,6 +33,14 @@
   .banner.idle{background:var(--ink-soft);color:var(--grey)}
   .banner.secret{background:var(--red);color:#fff}
   .banner.show{background:var(--green);color:#fff}
+  .scorebar{display:flex;justify-content:center;padding:.2em 0 0}
+  .scorechip{font-family:var(--mono);font-size:12px;letter-spacing:.08em;font-weight:700;
+       background:var(--ink-soft);border:1.5px solid #3A3240;border-radius:999px;
+       padding:.4em 1em;color:var(--paper)}
+  .scorechip b{color:var(--green)}
+  .scoreline{font-family:var(--mono);font-size:clamp(17px,3vw,22px);font-weight:700;
+       margin:0 0 1.2em;color:var(--paper)}
+  .scoreline .hit{color:var(--green)}
   .dots{display:flex;gap:.5em;justify-content:center;padding:3.2vh 0 1vh}
   .dot{width:10px;height:10px;border-radius:50%;background:#3A3240;transition:background .25s}
   .dot.done{background:var(--green)}
@@ -87,6 +95,7 @@
        color:var(--paper);width:min(90vw,44em);min-height:5em;resize:vertical;margin-bottom:1em}
   .pastebox::placeholder{color:var(--grey)}
   .pastebox:disabled{opacity:.5}
+  .pastebox.short{min-height:3.4em;margin-bottom:1.2em}
 
   .out-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
        color:#FF8FA8;font-weight:700;display:block;margin-bottom:.5em}
@@ -186,6 +195,7 @@
 <div class="app">
   <div class="banner idle" id="banner">A guessing game for two people</div>
   <div class="dots" id="dots"></div>
+  <div class="scorebar"><span class="scorechip" id="scoreChip" hidden></span></div>
   <div class="screens">
 
     <section class="screen active" data-screen="0">
@@ -258,10 +268,18 @@
     <section class="screen" data-screen="3">
       <div class="whisper">Person A only — almost there</div>
       <div class="big-emoji">📋</div>
-      <h1 class="headline">Paste what the computer made</h1>
-      <p class="subline">Only what it <b>made</b> — not what you typed to ask for it!</p>
+      <h1 class="headline">Paste it in</h1>
+      <p class="subline">Keep both. Your friend only sees the answer — the banner above
+      tells you when it's safe to share.</p>
+
+      <span class="out-label">What you asked the computer</span>
+      <textarea id="promptBox" class="pastebox short"
+                placeholder="Paste your prompt here (you'll show this at the end)…"></textarea>
+
+      <span class="out-label">What it made</span>
       <textarea id="outputBox" class="pastebox" disabled
                 placeholder="Paste the computer's answer here…"></textarea>
+
       <button id="revealBtn" class="bigbtn green" disabled>👀 Show My Friend →</button>
     </section>
 
@@ -285,8 +303,20 @@
       <div class="big-emoji">🎉</div>
       <h1 class="headline">What was the task?</h1>
       <div id="compare" class="compare"></div>
-      <div class="btnrow">
-        <button id="playAgainBtn" class="bigbtn">🔁 Swap Turns, Play Again</button>
+
+      <div id="scorePrompt">
+        <p class="subline">Did they guess the task?</p>
+        <div class="btnrow">
+          <button id="gotItBtn" class="bigbtn green">✅ They got it!</button>
+          <button id="missedBtn" class="bigbtn ghost">❌ Not quite</button>
+        </div>
+      </div>
+
+      <div id="scoreResult" hidden>
+        <div class="scoreline" id="scoreline"></div>
+        <div class="btnrow">
+          <button id="playAgainBtn" class="bigbtn">🔁 Swap Turns, Play Again</button>
+        </div>
       </div>
     </section>
 
@@ -299,8 +329,39 @@
 <!-- ============================================================ -->
 <div class="doc">
 
+  <h2>What This Game Is</h2>
+  <p><b>Prompt Pictionary is a ten-minute partner game.</b> One person is dealt five
+  secret task cards and picks one — something like <i>"a horror story about a vending
+  machine, in exactly 3 sentences."</i> They write a prompt asking an AI to produce it,
+  without using that card's banned words. Then they show their partner <b>only what the
+  AI produced</b> — never the card, never the prompt. The partner has 45 seconds to guess
+  what the original task was. Then you swap.</p>
+
+  <p>It's Pictionary, except the drawing is whatever the AI made, and the quality of that
+  "drawing" depends entirely on how precisely the first person wrote.</p>
+
+  <h2>What It Strengthens</h2>
+  <p>Four things, all of which show up in the actual work within a week:</p>
+  <ul class="check">
+    <li><b>Writing an instruction someone else can act on.</b> The AI can't ask a
+        clarifying question. Neither can a teammate reading your documentation at 11pm,
+        or a client reading your handoff after you've left.</li>
+    <li><b>Specificity over familiarity.</b> The most common failure is an instruction
+        that feels complete because the writer is silently supplying context from their
+        own head. You find out instantly here, because the AI supplies nothing.</li>
+    <li><b>Format and constraint as part of the ask.</b> Cards state a length on purpose —
+        "in exactly 3 sentences," "in 40 words or fewer." Carrying that constraint into
+        the prompt is the difference between a usable result and a wall of text.</li>
+    <li><b>Noticing where meaning gets lost.</b> Intent → prompt → AI output → someone
+        else's guess. Something can drop at every step, and the guess at the end makes
+        it visible instead of theoretical.</li>
+  </ul>
+  <p>The scoring is deliberately light — a running "guessed / played" count per session,
+  not a leaderboard. It's there so a pair can notice themselves getting better across
+  rounds, which is the actual signal worth chasing.</p>
+
   <h2>For Whoever's Running This</h2>
-  <p>Everything above is the app two people actually use. This part is for you —
+  <p>Everything above the fold is the app two people actually use. This part is for you —
   the plain version of the same rules, plus what to have ready.</p>
 
   <h2>The Rules, Plainly</h2>
@@ -308,16 +369,20 @@
     <li>Pair up, across teams, one device each.</li>
     <li>A is dealt <b>five random cards and picks one</b> — a finished text thing with a
         stated length (a 3-line haiku, a 3-sentence horror story, a 25-word warning label).
-        B never sees it, and never sees A's prompt either — only what the AI produces.</li>
+        B doesn't see it, and doesn't see A's prompt while guessing — only what the AI
+        produced. <b>Both get revealed at the end</b>, side by side with the task.</li>
     <li>A writes a prompt and runs it privately, trying to get the AI to make that thing.
         <b>Every card bans its own giveaway words</b> — the haiku card bans "haiku," "keys,"
         "car," "lost" — and on top of that the prompt can't copy the card's wording, mention
         the game, use real data, or get a second try. The app shows the banned words and the
         rules on A's screen, so you don't have to police them yourself.</li>
-    <li>A reveals only the output. <b>B's job is to guess the task A was given</b> — not to
+    <li>A shows only the output. <b>B's job is to guess the task A was given</b> — not to
         critique the writing — and they get 45 seconds. The app carries a red
         "don't share your screen yet" banner through every secret step and flips it green
         the moment it's safe to show, which matters most on virtual days.</li>
+    <li>At the reveal, all three appear together: <b>the task, A's actual prompt, and what
+        the AI made.</b> That's the debrief in one screen — you can see exactly where the
+        meaning survived or got lost, without anyone having to recall what they typed.</li>
     <li>Reveal the real card. Compare. Swap and go again.</li>
   </ul>
 
@@ -606,6 +671,7 @@
   });
 
   // paste + reveal (screen 3)
+  var promptBox = document.getElementById('promptBox');
   var outputBox = document.getElementById('outputBox');
   var revealBtn = document.getElementById('revealBtn');
   var outputCard = document.getElementById('outputCard');
@@ -651,15 +717,55 @@
     showCompare();
   });
 
+  function esc(t){
+    return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
   function showCompare(){
     var compare = document.getElementById('compare');
-    compare.innerHTML =
-      '<div class="box"><span class="lbl">What the computer made</span>' + outputCard.textContent + '</div>' +
-      '<div class="box"><span class="lbl">The secret task A was given</span>' + (currentCard ? currentCard.task : '') + '</div>';
+    var promptText = promptBox.value.trim();
+    var html =
+      '<div class="box"><span class="lbl">The secret task A was given</span>' +
+        esc(currentCard ? currentCard.task : '') + '</div>';
+    if (promptText) {
+      html += '<div class="box"><span class="lbl">What A actually asked the computer</span>' +
+        esc(promptText) + '</div>';
+    }
+    html += '<div class="box"><span class="lbl">What the computer made</span>' +
+      esc(outputCard.textContent) + '</div>';
+    compare.innerHTML = html;
     goTo(5);
   }
 
   // play again — reset everything, loop to screen 1
+  // ---------- session score ----------
+  var hits = 0, rounds = 0;
+  var scoreChip = document.getElementById('scoreChip');
+  var scorePrompt = document.getElementById('scorePrompt');
+  var scoreResult = document.getElementById('scoreResult');
+  var scoreline = document.getElementById('scoreline');
+
+  function paintChip(){
+    if (!rounds) { scoreChip.hidden = true; return; }
+    scoreChip.hidden = false;
+    scoreChip.innerHTML = 'This session: <b>' + hits + '</b> / ' + rounds + ' guessed';
+  }
+
+  function record(got){
+    rounds++;
+    if (got) hits++;
+    paintChip();
+    scoreline.innerHTML = got
+      ? '<span class="hit">Nice — they got it!</span><br>' + hits + ' of ' + rounds + ' this session'
+      : 'Missed that one.<br>' + hits + ' of ' + rounds + ' this session';
+    scorePrompt.hidden = true;
+    scoreResult.hidden = false;
+    beep(got ? 880 : 300, 0.3);
+  }
+
+  document.getElementById('gotItBtn').addEventListener('click', function(){ record(true); });
+  document.getElementById('missedBtn').addEventListener('click', function(){ record(false); });
+
   document.getElementById('playAgainBtn').addEventListener('click', function(){
     clearInterval(prepInterval); prepInterval = null;
     clearInterval(guessInterval); guessInterval = null;
@@ -670,6 +776,8 @@
     cardChoices.hidden = true;
     cardChoices.innerHTML = '';
     drawBtn.textContent = '🎴 Deal 5 Cards';
+    scorePrompt.hidden = false;
+    scoreResult.hidden = true;
     cardRules.hidden = true;
     cardBanned.hidden = true;
     promptBanned.hidden = true;
@@ -679,6 +787,7 @@
     prepTimerEl.classList.remove('low', 'flash');
     prepTimerBtn.disabled = false;
 
+    promptBox.value = '';
     outputBox.value = '';
     outputBox.disabled = true;
     revealBtn.disabled = true;
