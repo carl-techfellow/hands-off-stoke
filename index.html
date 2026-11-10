@@ -276,6 +276,31 @@
   .fbtn.danger{background:var(--red);border-color:var(--red);color:#fff}
   .fbtn.go{background:var(--green);border-color:var(--green);color:#fff}
 
+  /* round 2 */
+  .avoid{display:flex;flex-wrap:wrap;gap:.45em;justify-content:center;
+       max-width:min(94vw,46em);margin-bottom:1.2em}
+  .avoid .ac{background:rgba(214,0,60,.14);border:1.5px solid var(--red);
+       border-radius:999px;padding:.3em .8em;font-size:13.5px;font-weight:700;
+       color:#FFC2D1;text-decoration:line-through}
+  .r2box{width:100%;max-width:min(94vw,46em);background:var(--ink-soft);
+       border:2px solid #3A3240;border-radius:14px;padding:1.2em 1.3em;margin-bottom:1.1em}
+  .r2box[hidden]{display:none}
+  .r2who{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+       color:#FF8FA8;font-weight:700;display:block;margin-bottom:.6em}
+  .r2ta{font-family:var(--sans);font-size:15.5px;line-height:1.5;padding:.85em 1em;
+       border-radius:10px;border:2px solid var(--grey-dark);background:var(--ink);
+       color:var(--paper);width:100%;min-height:5em;resize:vertical;margin-bottom:.8em}
+  .r2ta::placeholder{color:var(--grey)}
+  .scan{font-size:14.5px;line-height:1.45;margin-bottom:.9em;min-height:1.4em}
+  .scan.clean{color:#7FBF9B}
+  .scan.busted{color:#FF8FA8;font-weight:700}
+  .team .tbadge{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+       text-transform:uppercase;font-weight:700;display:block;margin-top:.25em}
+  .team .tbadge.ok{color:var(--green)}
+  .team .tbadge.no{color:#FF8FA8}
+  .winner{font-family:var(--mono);font-size:clamp(15px,2.6vw,20px);font-weight:700;
+       color:var(--green);text-align:center;margin-bottom:1em}
+
   /* ================= THE DOCUMENT (below the app) ================= */
   .doc{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;
        padding:6vh 6vw 12vh;max-width:56rem;margin:0 auto}
@@ -365,7 +390,44 @@
         <button class="fbtn danger" id="strikeBtn">✕ Strike</button>
         <button class="fbtn" id="nextTeamBtn">→ Next team</button>
         <button class="fbtn" id="revealAllBtn">Reveal all</button>
-        <button class="fbtn go" id="newBoardBtn">Pick a new board</button>
+        <button class="fbtn go" id="toRound2Btn">Round 2 &rarr;</button>
+        <button class="fbtn" id="newBoardBtn">Pick a new board</button>
+      </div>
+    </section>
+
+    <section class="fscreen" id="fsRound2">
+      <h2 class="fhead">Round 2 &mdash; Beat the Board</h2>
+      <p class="fsub">Now you have seen what the AI says by default. Write a prompt that
+      gets something <b>genuinely different</b> &mdash; and that still does the job.
+      Escaping by making it produce nonsense scores nothing.</p>
+
+      <div class="asked" id="r2Asked">&mdash;</div>
+      <div class="avoid" id="avoidList"></div>
+
+      <div id="r2Timer" class="bigtimer">90</div>
+      <div class="fbtns" style="margin-bottom:1.4em">
+        <button class="fbtn danger" id="r2TimerBtn">&#9201; Start 90s write timer</button>
+      </div>
+
+      <p class="turnhint">Tap a team to judge their answer</p>
+      <div class="teams" id="r2TeamRow"></div>
+
+      <div class="r2box" id="r2Judge" hidden>
+        <span class="r2who" id="r2Who">Team</span>
+        <textarea id="r2Output" class="r2ta"
+                  placeholder="Paste what their AI produced&hellip;"></textarea>
+        <div class="scan" id="r2Scan"></div>
+        <div class="fbtns">
+          <button class="fbtn go" id="r2Good">It works &mdash; +25</button>
+          <button class="fbtn" id="r2Zero">No points</button>
+        </div>
+      </div>
+
+      <div class="winner" id="winnerLine" hidden></div>
+      <div class="fbtns">
+        <button class="fbtn" id="backToBoardBtn">&larr; Back to board</button>
+        <button class="fbtn" id="finalScoreBtn">Show final scores</button>
+        <button class="fbtn go" id="r2NewBoardBtn">Pick a new board</button>
       </div>
     </section>
 
@@ -1033,9 +1095,13 @@
   ];
   var activeTeam = 0, strikes = 0, currentBoard = null;
 
+  var fsRound2 = document.getElementById('fsRound2');
+  var R2_POINTS = 25;
+
   function fshow(which){
     fsPick.classList.toggle('active', which === 'pick');
     fsBoard.classList.toggle('active', which === 'board');
+    fsRound2.classList.toggle('active', which === 'round2');
   }
 
   function updateHint(){
@@ -1152,6 +1218,157 @@
     strikes = 0;
     paintStrikes();
     fshow('pick');
+  });
+
+  // ---------------- round 2: beat the board ----------------
+  var r2TeamRow = document.getElementById('r2TeamRow');
+  var r2Judge = document.getElementById('r2Judge');
+  var r2Who = document.getElementById('r2Who');
+  var r2Output = document.getElementById('r2Output');
+  var r2Scan = document.getElementById('r2Scan');
+  var r2TimerEl = document.getElementById('r2Timer');
+  var r2TimerBtn = document.getElementById('r2TimerBtn');
+  var avoidList = document.getElementById('avoidList');
+  var winnerLine = document.getElementById('winnerLine');
+  var r2Interval = null, judging = null;
+
+  function norm(t){ return String(t).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+
+  // advisory only - the host still makes the call
+  function scanOutput(text){
+    var hay = norm(text), hits = [];
+    if (!currentBoard || !hay) return hits;
+    currentBoard.answers.forEach(function(a){
+      var needle = norm(a);
+      if (needle.length > 3 && hay.indexOf(needle) > -1) hits.push(a);
+    });
+    return hits;
+  }
+
+  function paintR2Teams(){
+    r2TeamRow.innerHTML = '';
+    teams.forEach(function(t, i){
+      var d = document.createElement('div');
+      d.className = 'team' + (judging === i ? ' active' : '');
+      var nm = document.createElement('div');
+      nm.className = 'tname';
+      nm.textContent = t.name || ('Team ' + (i + 1));
+      var sc = document.createElement('div');
+      sc.className = 'tscore';
+      sc.textContent = t.score;
+      d.appendChild(nm);
+      d.appendChild(sc);
+      if (t.r2 === 'ok' || t.r2 === 'no') {
+        var b = document.createElement('span');
+        b.className = 'tbadge ' + (t.r2 === 'ok' ? 'ok' : 'no');
+        b.textContent = t.r2 === 'ok' ? 'escaped +25' : 'no points';
+        d.appendChild(b);
+      }
+      d.addEventListener('click', function(){ openJudge(i); });
+      r2TeamRow.appendChild(d);
+    });
+  }
+
+  function openJudge(i){
+    judging = i;
+    r2Who.textContent = 'Paste ' + (teams[i].name || 'Team ' + (i + 1)) + "'s output";
+    r2Output.value = teams[i].r2text || '';
+    r2Judge.hidden = false;
+    runScan();
+    paintR2Teams();
+  }
+
+  function runScan(){
+    var txt = r2Output.value.trim();
+    if (!txt) { r2Scan.className = 'scan'; r2Scan.textContent = ''; return; }
+    var hits = scanOutput(txt);
+    if (hits.length) {
+      r2Scan.className = 'scan busted';
+      r2Scan.textContent = 'BUSTED - that is still on the board: "' + hits[0] + '"';
+    } else {
+      r2Scan.className = 'scan clean';
+      r2Scan.textContent = 'Nothing from the board in there. Does it still do the job?';
+    }
+  }
+
+  r2Output.addEventListener('input', function(){
+    if (judging !== null) teams[judging].r2text = r2Output.value;
+    runScan();
+  });
+
+  function judge(ok){
+    if (judging === null) return;
+    var t = teams[judging];
+    if (t.r2 !== 'ok' && ok) t.score += R2_POINTS;
+    if (t.r2 === 'ok' && !ok) t.score -= R2_POINTS;
+    t.r2 = ok ? 'ok' : 'no';
+    r2Judge.hidden = true;
+    judging = null;
+    paintR2Teams();
+    paintTeams();
+    beep(ok ? 820 : 220, 0.3);
+  }
+
+  document.getElementById('r2Good').addEventListener('click', function(){ judge(true); });
+  document.getElementById('r2Zero').addEventListener('click', function(){ judge(false); });
+
+  r2TimerBtn.addEventListener('click', function(){
+    if (r2Interval) return;
+    var t = 90;
+    r2TimerEl.textContent = t;
+    r2TimerEl.classList.remove('low', 'flash');
+    r2TimerBtn.disabled = true;
+    r2Interval = setInterval(function(){
+      t--;
+      r2TimerEl.textContent = t;
+      if (t <= 10) r2TimerEl.classList.add('low');
+      if (t <= 0) {
+        clearInterval(r2Interval);
+        r2Interval = null;
+        r2TimerEl.classList.add('flash');
+        r2TimerBtn.disabled = false;
+        beep(660, 0.5);
+      }
+    }, 1000);
+  });
+
+  function enterRound2(){
+    if (!currentBoard) return;
+    document.getElementById('revealAllBtn').click();
+    document.getElementById('r2Asked').textContent = currentBoard.asked;
+    avoidList.innerHTML = '';
+    currentBoard.answers.forEach(function(a){
+      var c = document.createElement('span');
+      c.className = 'ac';
+      c.textContent = a;
+      avoidList.appendChild(c);
+    });
+    teams.forEach(function(t){ t.r2 = null; t.r2text = ''; });
+    judging = null;
+    r2Judge.hidden = true;
+    winnerLine.hidden = true;
+    clearInterval(r2Interval); r2Interval = null;
+    r2TimerEl.textContent = '90';
+    r2TimerEl.classList.remove('low', 'flash');
+    r2TimerBtn.disabled = false;
+    paintR2Teams();
+    fshow('round2');
+  }
+
+  document.getElementById('toRound2Btn').addEventListener('click', enterRound2);
+  document.getElementById('backToBoardBtn').addEventListener('click', function(){ fshow('board'); });
+  document.getElementById('r2NewBoardBtn').addEventListener('click', function(){
+    strikes = 0; paintStrikes(); fshow('pick');
+  });
+
+  document.getElementById('finalScoreBtn').addEventListener('click', function(){
+    var best = -1, names = [];
+    teams.forEach(function(t){ if (t.score > best) best = t.score; });
+    teams.forEach(function(t, i){ if (t.score === best) names.push(t.name || 'Team ' + (i + 1)); });
+    winnerLine.hidden = false;
+    winnerLine.textContent = (names.length > 1 ? 'Tied at ' : 'Winner: ') +
+      names.join(' & ') + ' - ' + best + ' points';
+    beep(900, 0.5);
   });
 
   paintTeams();
