@@ -43,7 +43,7 @@ HARNESS = r"""
     r2team(1).click();
     chk('judge panel opens', r2Judge.hidden === false);
     chk('judged team highlighted', r2team(1).classList.contains('control'));
-    var topAnswer = BOARDS[1].answers[0];
+    var topAnswer = BOARDS[1].answers[0].text;
     setOut('Draft one: ' + topAnswer + ' the rest of the sentence.');
     chk('scan flags busted', r2Scan.className.indexOf('busted') > -1);
     chk('busted names the hit', r2Scan.textContent.indexOf(topAnswer) > -1);
@@ -51,6 +51,20 @@ HARNESS = r"""
     // clean answer - deliberately unlike anything on any board
     setOut('zebra kettle forty two purple bicycle coffee');
     chk('scan flags clean', r2Scan.className.indexOf('clean') > -1);
+
+    // a multi-word trigger counts as busted even when the exact answer is absent
+    var multi = null;
+    BOARDS[1].answers.forEach(function(a){
+      a.keys.forEach(function(k){ if (!multi && k.indexOf(' ') > -1) multi = k; });
+    });
+    if (multi) {
+      setOut('Draft two: ' + multi + ' on the data pipeline.');
+      chk('multi-word trigger also busts', r2Scan.className.indexOf('busted') > -1);
+    } else {
+      chk('multi-word trigger also busts (no multi-word key on this board)', true);
+    }
+    setOut('zebra kettle forty two purple bicycle coffee');
+    chk('clean again after the trigger test', r2Scan.className.indexOf('clean') > -1);
 
     document.getElementById('r2Good').click();
     chk('team2 +25', teams[1].score === 25);

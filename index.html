@@ -312,6 +312,23 @@
   .swapbox summary:hover{color:var(--paper)}
   .swapbox[open] summary{color:#FF8FA8;margin-bottom:1em}
 
+  /* the guess box */
+  .guessrow{display:flex;gap:.5em;width:100%;max-width:min(94vw,40em);margin:0 0 .5em}
+  .guessrow[hidden]{display:none}
+  .guessin{flex:1 1 auto;min-width:0;font-family:var(--sans);font-size:16px;
+       padding:.7em .9em;border-radius:10px;border:2px solid var(--grey-dark);
+       background:var(--ink);color:var(--paper)}
+  .guessin::placeholder{color:var(--grey)}
+  .guessin:focus{outline:none;border-color:var(--red)}
+  .guesshint{font-size:12.5px;line-height:1.45;color:var(--grey);text-align:center;
+       max-width:min(94vw,40em);margin:0 0 .6em}
+  .guesshint[hidden]{display:none}
+  .verdict{font-family:var(--mono);font-size:clamp(13px,2.2vw,16px);font-weight:700;
+       text-align:center;min-height:1.5em;margin-bottom:.8em;letter-spacing:.02em}
+  .verdict.hit{color:var(--green)}
+  .verdict.miss{color:#FF8FA8}
+  .verdict.dup{color:var(--grey)}
+
   /* fast money */
   .fastgrid{display:flex;flex-direction:column;gap:.7em;width:100%;
        max-width:min(94vw,50em);margin-bottom:1.2em}
@@ -452,6 +469,15 @@
       </div>
 
       <div class="board" id="boardGrid"></div>
+
+      <div class="guessrow" id="guessRow" hidden>
+        <input id="guessInput" class="guessin" type="text" autocomplete="off"
+               placeholder="Type roughly what they said&hellip;">
+        <button class="fbtn go" id="guessBtn">Check it</button>
+      </div>
+      <p class="guesshint" id="guessHint" hidden>Keywords are enough &mdash; &ldquo;express
+      interest&rdquo; finds &ldquo;I am writing to express my interest in.&rdquo;</p>
+      <div class="verdict" id="guessVerdict"></div>
 
       <div class="bank" id="bankChip">Bank <b>0</b></div>
       <div class="steal" id="stealBanner" hidden></div>
@@ -1182,58 +1208,158 @@
   var BOARDS = [
     { tag: "Cover letter",
       asked: "Ask any chatbot to write a cover letter. Name the opening line it reaches for.",
-      answers: ["I am writing to express my interest in",
-                "I am excited to apply for",
-                "I am thrilled to apply for",
-                "With a strong background in",
-                "As a passionate professional",
-                "I came across your job posting"] },
+      answers: [
+        { text: "I am writing to express my interest in",
+          keys: ["writing to express", "express my interest", "express interest",
+                 "writing to apply", "interest in the position"] },
+        { text: "I am excited to apply for",
+          keys: ["excited to apply", "excited about this opportunity", "excited"] },
+        { text: "I am thrilled to apply for",
+          keys: ["thrilled to apply", "thrilled", "delighted to apply"] },
+        { text: "With a strong background in",
+          keys: ["strong background", "extensive background", "background in"] },
+        { text: "As a passionate professional",
+          keys: ["passionate", "passion for"] },
+        { text: "I came across your job posting",
+          keys: ["came across your posting", "came across your job", "saw your posting",
+                 "came across"] }
+      ] },
     { tag: "Resume bullet",
       asked: "Ask any chatbot to write a resume bullet. Name the verb it starts with.",
-      answers: ["Spearheaded", "Leveraged", "Streamlined",
-                "Collaborated with cross-functional teams", "Implemented", "Utilized"] },
+      answers: [
+        { text: "Spearheaded", keys: ["spearheaded", "spearhead", "spearheading"] },
+        { text: "Leveraged", keys: ["leveraged", "leverage", "leveraging"] },
+        { text: "Streamlined", keys: ["streamlined", "streamline", "streamlining"] },
+        { text: "Collaborated with cross-functional teams",
+          keys: ["collaborated", "collaboration", "cross functional", "crossfunctional"] },
+        { text: "Implemented", keys: ["implemented", "implement", "implementing"] },
+        { text: "Utilized", keys: ["utilized", "utilize", "utilizing", "utilization"] }
+      ] },
     { tag: "Status update",
       asked: "Ask any chatbot to write your standup update. Name a phrase it drops in.",
-      answers: ["Circling back", "Just wanted to touch base", "On track",
-                "Currently blocked on", "Moving forward", "Please let me know if"] },
+      answers: [
+        { text: "Circling back", keys: ["circling back", "circle back"] },
+        { text: "Just wanted to touch base", keys: ["touch base", "touching base"] },
+        { text: "On track", keys: ["on track", "on schedule", "tracking well"] },
+        { text: "Currently blocked on", keys: ["blocked", "blocker", "blockers", "roadblock"] },
+        { text: "Moving forward", keys: ["moving forward", "going forward"] },
+        { text: "Please let me know if", keys: ["let me know", "please let me know"] }
+      ] },
     { tag: "Commit message",
       asked: "Ask any chatbot to write a commit message. Name what it writes.",
-      answers: ["Update README", "Fix bug", "Initial commit",
-                "Refactor code", "Add new feature", "Minor changes"] },
+      answers: [
+        { text: "Update README", keys: ["update readme", "readme"] },
+        { text: "Fix bug", keys: ["fix bug", "bug fix", "fixed bug", "fix issue", "bugfix"] },
+        { text: "Initial commit", keys: ["initial commit", "first commit"] },
+        { text: "Refactor code", keys: ["refactor", "refactored", "refactoring"] },
+        { text: "Add new feature", keys: ["add feature", "new feature", "added feature"] },
+        { text: "Minor changes",
+          keys: ["minor changes", "small changes", "various changes", "minor fixes",
+                 "misc changes"] }
+      ] },
     { tag: "Variable names",
       asked: "Ask any chatbot for code holding a list of users. Name the variable it picks.",
-      answers: ["users", "userList", "data", "result", "items", "userData"] },
+      answers: [
+        { text: "users", keys: ["users"] },
+        { text: "userList", keys: ["userlist", "user list", "users list"] },
+        { text: "data", keys: ["data"] },
+        { text: "result", keys: ["result", "results"] },
+        { text: "items", keys: ["items", "item list", "itemlist"] },
+        { text: "userData", keys: ["userdata", "user data"] }
+      ] },
     { tag: "Test cases",
       asked: "Ask any chatbot to write test cases for a login form. Name a case it lists.",
-      answers: ["Valid username and password", "Invalid password", "Empty fields",
-                "Password reset", "SQL injection attempt", "Lockout after failed attempts"] },
+      answers: [
+        { text: "Valid username and password",
+          keys: ["valid credentials", "valid username", "valid password", "happy path",
+                 "correct credentials", "successful login"] },
+        { text: "Invalid password",
+          keys: ["invalid password", "wrong password", "incorrect password", "bad password"] },
+        { text: "Empty fields",
+          keys: ["empty fields", "blank fields", "required fields", "empty", "blank",
+                 "left blank", "no input"] },
+        { text: "Password reset",
+          keys: ["password reset", "forgot password", "reset password"] },
+        { text: "SQL injection attempt", keys: ["sql injection", "injection"] },
+        { text: "Lockout after failed attempts",
+          keys: ["lockout", "locked out", "too many attempts", "failed attempts",
+                 "account locked"] }
+      ] },
     { tag: "User story",
       asked: "Ask any chatbot for a Jira user story. Name the words it uses.",
-      answers: ["As a user, I want", "So that I can", "Acceptance criteria",
-                "Given, when, then", "As an admin", "Definition of done"] },
+      answers: [
+        { text: "As a user, I want", keys: ["as a user", "i want"] },
+        { text: "So that I can", keys: ["so that i can", "so that"] },
+        { text: "Acceptance criteria", keys: ["acceptance criteria", "acceptance"] },
+        { text: "Given, when, then", keys: ["given when then", "given when", "when then"] },
+        { text: "As an admin", keys: ["as an admin", "as an administrator", "admin"] },
+        { text: "Definition of done", keys: ["definition of done", "done criteria"] }
+      ] },
     { tag: "Slide titles",
       asked: "Ask any chatbot to title the slides of a pitch deck. Name a title it gives you.",
-      answers: ["Key Takeaways", "The Problem", "Our Solution",
-                "Next Steps", "Market Opportunity", "Thank You"] },
+      answers: [
+        { text: "Key Takeaways", keys: ["key takeaways", "takeaways", "key points"] },
+        { text: "The Problem", keys: ["the problem", "problem statement", "problem"] },
+        { text: "Our Solution", keys: ["our solution", "the solution", "solution"] },
+        { text: "Next Steps", keys: ["next steps", "the road ahead"] },
+        { text: "Market Opportunity",
+          keys: ["market opportunity", "market size", "the market", "opportunity"] },
+        { text: "Thank You", keys: ["thank you", "questions", "q and a", "thanks"] }
+      ] },
     { tag: "App ideas",
       asked: "Ask any chatbot for a beginner web app idea. Name the app it suggests.",
-      answers: ["To-do list", "Weather app", "Recipe finder",
-                "Budget tracker", "Personal blog", "Quiz app"] },
+      answers: [
+        { text: "To-do list", keys: ["to do list", "todo list", "todo", "task list",
+                                     "to do app", "task tracker"] },
+        { text: "Weather app", keys: ["weather app", "weather", "weather dashboard"] },
+        { text: "Recipe finder", keys: ["recipe finder", "recipe app", "recipe", "recipes"] },
+        { text: "Budget tracker",
+          keys: ["budget tracker", "budget app", "budget", "expense tracker", "expenses"] },
+        { text: "Personal blog", keys: ["personal blog", "blog", "blogging platform"] },
+        { text: "Quiz app", keys: ["quiz app", "quiz", "trivia", "flashcards"] }
+      ] },
     { tag: "Hedging",
       asked: "Ask any chatbot something it is unsure about. Name how it hedges.",
-      answers: ["It depends", "There are several factors to consider",
-                "I would recommend consulting a professional",
-                "I do not have access to real-time information",
-                "As an AI", "Generally speaking"] },
+      answers: [
+        { text: "It depends", keys: ["it depends", "depends"] },
+        { text: "There are several factors to consider",
+          keys: ["several factors", "many factors", "factors to consider",
+                 "a few factors", "number of factors"] },
+        { text: "I would recommend consulting a professional",
+          keys: ["consult a professional", "consulting a professional", "seek professional",
+                 "talk to a professional", "ask an expert"] },
+        { text: "I do not have access to real-time information",
+          keys: ["real time information", "real time data", "no access to",
+                 "cannot access", "do not have access"] },
+        { text: "As an AI", keys: ["as an ai", "as a language model", "ai language model"] },
+        { text: "Generally speaking",
+          keys: ["generally speaking", "in general", "typically", "usually"] }
+      ] },
     { tag: "Sign-offs",
       asked: "Ask any chatbot for anything at all. Name the line it ends on.",
-      answers: ["Let me know if you have any questions", "I hope this helps",
-                "Feel free to reach out", "Would you like me to",
-                "Happy to help", "Good luck"] },
+      answers: [
+        { text: "Let me know if you have any questions",
+          keys: ["let me know", "any questions", "if you have questions"] },
+        { text: "I hope this helps", keys: ["hope this helps", "hope that helps"] },
+        { text: "Feel free to reach out", keys: ["feel free", "reach out", "dont hesitate"] },
+        { text: "Would you like me to",
+          keys: ["would you like me to", "want me to", "shall i"] },
+        { text: "Happy to help", keys: ["happy to help", "glad to help"] },
+        { text: "Good luck", keys: ["good luck", "best of luck"] }
+      ] },
     { tag: "Formatting",
       asked: "Ask any chatbot a plain question. Name a formatting habit in the answer.",
-      answers: ["Bullet points", "Bold headers", "Numbered list",
-                "Em dashes", "Here is a breakdown", "A closing summary"] }
+      answers: [
+        { text: "Bullet points", keys: ["bullet points", "bullets", "bulleted list", "bullet"] },
+        { text: "Bold headers",
+          keys: ["bold headers", "bold text", "headers", "headings", "bold"] },
+        { text: "Numbered list", keys: ["numbered list", "ordered list", "numbers"] },
+        { text: "Em dashes", keys: ["em dash", "em dashes", "dashes", "dash"] },
+        { text: "Here is a breakdown",
+          keys: ["a breakdown", "breakdown", "lets break", "break it down"] },
+        { text: "A closing summary",
+          keys: ["closing summary", "in summary", "summary", "recap", "wrap up"] }
+      ] }
   ];
   var POINTS = [30, 25, 20, 15, 10, 5];
   var MULTIPLIERS = [1, 1, 2, 3];
@@ -1302,6 +1428,86 @@
   var R2_POINTS = 25;
 
   function tname(i){ return teams[i].name || ('Team ' + (i + 1)); }
+
+  // ---- keyword matching ----------------------------------------------------
+  // Nobody guesses "I am writing to express my interest in" word for word, so every
+  // answer carries trigger phrases and a guess only has to land on one of them.
+  var STOP = { a:1, an:1, the:1, i:1, im:1, am:1, is:1, are:1, was:1, to:1, too:1, for:1,
+               of:1, my:1, your:1, you:1, in:1, on:1, it:1, its:1, and:1, or:1, this:1,
+               that:1, we:1, be:1, with:1, at:1, as:1, s:1, do:1, does:1, did:1, will:1,
+               would:1, like:1, just:1, about:1, some:1, any:1, me:1, they:1 };
+
+  function nrm(t){
+    return String(t).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  // Crude on purpose: a team says "bug fixes" and the trigger is "bug fix", so word
+  // endings get trimmed before the word-overlap passes compare anything.
+  function stem(w){
+    if (w.length > 5 && w.slice(-3) === 'ing') return w.slice(0, -3);
+    if (w.length > 4 && w.slice(-2) === 'ed') return w.slice(0, -2);
+    if (w.length > 4 && w.slice(-2) === 'es') return w.slice(0, -2);
+    if (w.length > 3 && w.slice(-1) === 's') return w.slice(0, -1);
+    return w;
+  }
+  function toks(t){
+    return nrm(t).split(' ')
+      .filter(function(w){ return w && !STOP[w]; })
+      .map(stem);
+  }
+  function ansText(a){ return a.text; }
+  function guessKeys(a){ return [nrm(a.text)].concat(a.keys.map(nrm)); }
+  // scanning Beat the Board output is stricter: single loose words like "data" or
+  // "questions" would flag innocent output, so only the answer itself and
+  // multi-word triggers count there.
+  function strictKeys(a){
+    return [nrm(a.text)].concat(a.keys.map(nrm).filter(function(k){
+      return k.indexOf(' ') > -1;
+    }));
+  }
+  function covers(needleToks, hayToks){
+    if (!needleToks.length) return false;
+    return needleToks.every(function(w){ return hayToks.indexOf(w) > -1; });
+  }
+
+  // Returns the matching answer index, or -1. Three ways to land it:
+  //   1. the guess contains a trigger phrase
+  //   2. every meaningful word of a trigger shows up in the guess
+  //   3. the guess is a fragment of the answer ("finds you well")
+  function matchGuess(text){
+    if (!currentBoard) return -1;
+    var hay = ' ' + nrm(text) + ' ';
+    var hayToks = toks(text);
+    var answers = currentBoard.answers, i, j, keys;
+    // The longest trigger wins, not the first one down the board - otherwise
+    // "users list" matches the "users" slot before it ever reaches "userList".
+    var best = -1, bestLen = 0;
+    for (i = 0; i < answers.length; i++) {
+      keys = guessKeys(answers[i]);
+      for (j = 0; j < keys.length; j++) {
+        if (keys[j] && hay.indexOf(' ' + keys[j] + ' ') > -1 && keys[j].length > bestLen) {
+          best = i; bestLen = keys[j].length;
+        }
+      }
+    }
+    if (best > -1) return best;
+    // every meaningful word of a trigger turns up in the guess, order ignored
+    if (hayToks.length) {
+      for (i = 0; i < answers.length; i++) {
+        keys = guessKeys(answers[i]);
+        for (j = 0; j < keys.length; j++) {
+          if (covers(toks(keys[j]), hayToks) && keys[j].length > bestLen) {
+            best = i; bestLen = keys[j].length;
+          }
+        }
+      }
+      if (best > -1) return best;
+      // the guess is a fragment of the answer itself
+      for (i = 0; i < answers.length; i++) {
+        if (covers(hayToks, toks(answers[i].text))) return i;
+      }
+    }
+    return -1;
+  }
   function multiplier(){ return MULTIPLIERS[Math.min(roundIdx, MULTIPLIERS.length - 1)]; }
 
   function fshow(which){
@@ -1387,6 +1593,8 @@
   function startRound(){
     currentBoard = lineup[roundIdx];
     bank = 0; strikes = 0;
+    setVerdict('', '');
+    document.getElementById('guessInput').value = '';
     faceoffWinner = null;
     phase = 'faceoff';
     buildBoard();
@@ -1396,7 +1604,7 @@
 
   function buildBoard(){
     boardGrid.innerHTML = '';
-    currentBoard.answers.forEach(function(ans, i){
+    currentBoard.answers.forEach(function(a, i){
       var btn = document.createElement('button');
       btn.className = 'slot';
       btn.type = 'button';
@@ -1464,6 +1672,9 @@
       ' gets one guess for ' + bank + ' points';
     stealFailBtn.hidden = (phase !== 'steal');
     strikeBtn.hidden = (phase === 'steal');
+    var guessing = (phase === 'play' || phase === 'steal');
+    document.getElementById('guessRow').hidden = !guessing;
+    document.getElementById('guessHint').hidden = !guessing;
     paintStrikes();
     paintTeams();
     paintHint();
@@ -1473,12 +1684,46 @@
     var btn = boardGrid.querySelector('[data-i="' + i + '"]');
     if (!btn || btn.classList.contains('revealed')) return;
     btn.classList.add('revealed');
-    btn.querySelector('.stext').textContent = currentBoard.answers[i];
+    btn.querySelector('.stext').textContent = ansText(currentBoard.answers[i]);
     bank += POINTS[i] * multiplier();
     beep(760, 0.25);
     if (phase === 'steal') { awardBank(1 - control); return; }
     paintAll();
   }
+
+  function setVerdict(msg, kind){
+    var v = document.getElementById('guessVerdict');
+    v.textContent = msg;
+    v.className = 'verdict' + (kind ? ' ' + kind : '');
+  }
+
+  function submitGuess(){
+    var input = document.getElementById('guessInput');
+    var text = input.value.trim();
+    if (!text) return;
+    if (phase !== 'play' && phase !== 'steal') return;
+    var i = matchGuess(text);
+    if (i === -1) {
+      setVerdict('\u2715  Not on the board', 'miss');
+      beep(200, 0.3);
+      input.select();
+      return;
+    }
+    var btn = boardGrid.querySelector('[data-i="' + i + '"]');
+    if (btn && btn.classList.contains('revealed')) {
+      setVerdict('Already up there \u2014 ' + ansText(currentBoard.answers[i]), 'dup');
+      input.select();
+      return;
+    }
+    input.value = '';
+    setVerdict('\u2713  #' + (i + 1) + '  ' + ansText(currentBoard.answers[i]), 'hit');
+    revealSlot(i);
+  }
+
+  document.getElementById('guessBtn').addEventListener('click', submitGuess);
+  document.getElementById('guessInput').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') { e.preventDefault(); submitGuess(); }
+  });
 
   document.getElementById('fo1Btn').addEventListener('click', function(){ wonFaceoff(0); });
   document.getElementById('fo2Btn').addEventListener('click', function(){ wonFaceoff(1); });
@@ -1518,11 +1763,11 @@
 
   document.getElementById('revealAllBtn').addEventListener('click', function(){
     if (!currentBoard) return;
-    currentBoard.answers.forEach(function(ans, i){
+    currentBoard.answers.forEach(function(a, i){
       var btn = boardGrid.querySelector('[data-i="' + i + '"]');
       if (btn && !btn.classList.contains('revealed')) {
         btn.classList.add('revealed');
-        btn.querySelector('.stext').textContent = ans;
+        btn.querySelector('.stext').textContent = ansText(a);
       }
     });
   });
@@ -1557,7 +1802,7 @@
     }
     if (!sdBoard) sdBoard = BOARDS[0];
     document.getElementById('sdAsked').textContent = sdBoard.asked +
-      '  (number-one answer: "' + sdBoard.answers[0] + '")';
+      '  (number-one answer: "' + ansText(sdBoard.answers[0]) + '")';
     var row = document.getElementById('sdTeamRow');
     row.innerHTML = '';
     teams.forEach(function(t, i){
@@ -1697,17 +1942,17 @@
   var winnerLine = document.getElementById('winnerLine');
   var r2Interval = null, judging = null;
 
-  function norm(t){ return String(t).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
-
   // advisory only - the host still makes the call
   function scanOutput(text){
-    var inner = norm(text), hits = [];
+    var inner = nrm(text), hits = [];
     if (!currentBoard || !inner) return hits;
     // pad both sides so short answers like "data" do not fire on "database"
     var hay = ' ' + inner + ' ';
     currentBoard.answers.forEach(function(a){
-      var needle = ' ' + norm(a) + ' ';
-      if (needle.length > 5 && hay.indexOf(needle) > -1) hits.push(a);
+      var found = strictKeys(a).some(function(k){
+        return k && hay.indexOf(' ' + k + ' ') > -1;
+      });
+      if (found) hits.push(ansText(a));
     });
     return hits;
   }
@@ -1800,7 +2045,7 @@
     avoidList.innerHTML = '';
     currentBoard.answers.forEach(function(a){
       var c = document.createElement('span');
-      c.className = 'ac'; c.textContent = a;
+      c.className = 'ac'; c.textContent = ansText(a);
       avoidList.appendChild(c);
     });
     teams.forEach(function(t){ t.r2 = null; t.r2text = ''; });

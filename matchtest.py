@@ -35,6 +35,9 @@ HARNESS = r"""
         document.getElementById('deckCount').textContent === String(BOARDS.length));
     chk('every board has six answers',
         BOARDS.every(function(b){ return b.answers.length === 6; }));
+    chk('every answer has text and keywords',
+        BOARDS.every(function(b){ return b.answers.every(function(a){
+          return !!a.text && a.keys.length >= 1; }); }));
     chk('every board has a tag and a question',
         BOARDS.every(function(b){ return !!b.tag && b.asked.length > 20; }));
     chk('no duplicate tags', new Set(BOARDS.map(function(b){ return b.tag; })).size === BOARDS.length);
@@ -103,6 +106,7 @@ HARNESS = r"""
     chk('round chip shows single points', roundChip.textContent.indexOf('single points') > -1);
     chk('round chip shows the target', roundChip.textContent.indexOf('300') > -1);
     chk('round 1 slot 1 worth 30', slots()[0].querySelector('.spts').textContent === '30');
+    chk('guess box hidden during face-off', document.getElementById('guessRow').hidden === true);
 
     faceoff(1);
     chk('face-off winner recorded', faceoffWinner === 1);
@@ -115,12 +119,113 @@ HARNESS = r"""
     chk('phase is play after pass', phase === 'play');
     chk('team 1 card marked control', teamRow.querySelectorAll('.team')[0].classList.contains('control'));
 
+    // ---- the guess box: keywords are enough ----
+    chk('guess box visible in play', document.getElementById('guessRow').hidden === false);
+    chk('guess hint visible in play', document.getElementById('guessHint').hidden === false);
+
+    var gi = document.getElementById('guessInput');
+    function guess(t){ gi.value = t; document.getElementById('guessBtn').click(); }
+    function verdict(){ return document.getElementById('guessVerdict'); }
+
+    // every answer on every board has to be reachable from at least one of its keywords
+    var unreachable = [];
+    BOARDS.forEach(function(b){
+      var saved = currentBoard;
+      currentBoard = b;
+      b.answers.forEach(function(a, ai){
+        // every single trigger must land on its own answer, not just one of them
+        a.keys.forEach(function(k){
+          if (matchGuess(k) !== ai) unreachable.push(b.tag + '/' + k);
+        });
+        if (matchGuess(a.text) !== ai) unreachable.push(b.tag + '/[full] ' + a.text);
+      });
+      currentBoard = saved;
+    });
+    chk('every keyword routes to its own answer' +
+        (unreachable.length ? ' [' + unreachable.slice(0, 3).join('; ') + ']' : ''),
+        unreachable.length === 0);
+
+    // what a team actually shouts, and the answer it has to land on
+    var LOOSE = [
+      ['Cover letter',   'i hope to express interest',   'I am writing to express my interest in'],
+      ['Cover letter',   'i saw your posting',           'I came across your job posting'],
+      ['Resume bullet',  'spearheading',                 'Spearheaded'],
+      ['Resume bullet',  'cross-functional!',            'Collaborated with cross-functional teams'],
+      ['Status update',  'circle back',                  'Circling back'],
+      ['Status update',  'im blocked',                   'Currently blocked on'],
+      ['Commit message', 'bug fixes',                    'Fix bug'],
+      ['Commit message', 'readme',                       'Update README'],
+      ['Variable names', 'users list',                   'userList'],
+      ['Variable names', 'user data',                    'userData'],
+      ['Test cases',     'wrong password',               'Invalid password'],
+      ['Test cases',     'they leave it blank',          'Empty fields'],
+      ['Test cases',     'forgot my password',           'Password reset'],
+      ['Slide titles',   'takeaways',                    'Key Takeaways'],
+      ['Slide titles',   'thanks!',                      'Thank You'],
+      ['App ideas',      'a todo app',                   'To-do list'],
+      ['App ideas',      'tracking your expenses',       'Budget tracker'],
+      ['Hedging',        'as a language model',          'As an AI'],
+      ['Sign-offs',      'hope that helps',              'I hope this helps'],
+      ['Sign-offs',      'dont hesitate to reach out',   'Feel free to reach out'],
+      ['Sign-offs',      'would you like me to',         'Would you like me to'],
+      ['Formatting',     'bullets',                      'Bullet points'],
+      ['Formatting',     'those long dashes',            'Em dashes'],
+      ['Formatting',     'my dog ate the homework',      null],
+      ['Formatting',     'purple zebra kettle',          null]
+    ];
+    var misjudged = [];
+    (function(){
+      var saved = currentBoard;
+      LOOSE.forEach(function(c){
+        for (var i = 0; i < BOARDS.length; i++) if (BOARDS[i].tag === c[0]) currentBoard = BOARDS[i];
+        var m = matchGuess(c[1]);
+        var got = (m === -1) ? null : currentBoard.answers[m].text;
+        if (got !== c[2]) misjudged.push('"' + c[1] + '" -> ' + (got || 'NO MATCH'));
+      });
+      currentBoard = saved;
+    })();
+    chk('loose guesses judged correctly (' + LOOSE.length + ' cases)' +
+        (misjudged.length ? ' [' + misjudged.slice(0, 3).join('; ') + ']' : ''),
+        misjudged.length === 0);
+
+    // partial phrasing still lands
+    chk('fragment of the answer matches', matchGuess('express interest') === 0);
+    chk('keyword in a sentence matches', matchGuess('they said something about being thrilled') === 2);
+    chk('words out of order match', matchGuess('background strong') === 3);
+    chk('nonsense does not match', matchGuess('zebra kettle bicycle') === -1);
+    chk('empty guess does not match', matchGuess('   ') === -1);
+    chk('stopwords alone do not match', matchGuess('the and of to') === -1);
+    chk('an all-stopword trigger still matches',
+        (function(){ var sv = currentBoard;
+          for (var i = 0; i < BOARDS.length; i++) if (BOARDS[i].tag === 'Sign-offs') currentBoard = BOARDS[i];
+          var r = matchGuess('would you like me to') === 3;
+          currentBoard = sv; return r; })());
+    chk('longest trigger wins over a shorter one',
+        (function(){ var sv = currentBoard;
+          for (var i = 0; i < BOARDS.length; i++) if (BOARDS[i].tag === 'Variable names') currentBoard = BOARDS[i];
+          var r = matchGuess('users list') === 1 && matchGuess('user data') === 5 && matchGuess('users') === 0;
+          currentBoard = sv; return r; })());
+
+    guess('express interest');
+    chk('a keyword guess reveals the slot', slots()[0].classList.contains('revealed'));
+    chk('verdict shows the hit', verdict().className.indexOf('hit') > -1);
+    chk('verdict names the answer', verdict().textContent.indexOf('express my interest') > -1);
+    chk('guess input cleared on a hit', gi.value === '');
+    chk('keyword guess banked 30', bank === 30);
+
+    guess('writing to express my interest');
+    chk('re-guessing a revealed answer is flagged', verdict().className.indexOf('dup') > -1);
+    chk('no double-bank from a repeat guess', bank === 30);
+
+    guess('zebra kettle bicycle');
+    chk('a miss is reported', verdict().className.indexOf('miss') > -1);
+    chk('a miss banks nothing', bank === 30);
+    chk('a miss does not auto-strike', strikes === 0);
+
     // ---- reveals bank, they do not score directly ----
     slots()[0].click();
-    chk('30 into bank', bank === 30);
+    chk('already-revealed slot adds nothing', bank === 30);
     chk('nobody scored on reveal', teams[0].score === 0 && teams[1].score === 0);
-    slots()[0].click();
-    chk('no double-bank on one slot', bank === 30);
     slots()[1].click();
     chk('bank accumulates to 55', bank === 55);
 
@@ -135,6 +240,8 @@ HARNESS = r"""
     // a successful steal takes the bank and ends the round
     slots()[2].click();
     chk('steal pays the other team', teams[1].score === 75);
+    chk('guess box hidden once the round ends',
+        phase === 'faceoff' && document.getElementById('guessRow').hidden === true);
     chk('controlling team got nothing', teams[0].score === 0);
     chk('round advanced after award', roundIdx === 1);
     chk('bank reset for new round', bank === 0);
@@ -184,7 +291,7 @@ HARNESS = r"""
     chk('sudden death after four rounds', fsSudden.classList.contains('active'));
     chk('sudden death uses an unplayed board', lineup.indexOf(sdBoard) === -1);
     chk('sudden death shows the top answer',
-        document.getElementById('sdAsked').textContent.indexOf(sdBoard.answers[0]) > -1);
+        document.getElementById('sdAsked').textContent.indexOf(sdBoard.answers[0].text) > -1);
 
     document.getElementById('sd2Btn').click();
     chk('sudden death winner clears the target', teams[1].score >= 300);
