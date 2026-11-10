@@ -81,6 +81,11 @@
   .key{font-family:var(--mono);font-size:11px;background:#F2EEEA;border:1px solid var(--line);
        border-radius:999px;padding:.15em .55em;color:#413B47}
   .key.strict{background:#EAF6EE;border-color:#BEE0CA}
+  .runlist{margin:0 0 1.6em;padding-left:1.5em;max-width:46em}
+  .runlist li{margin-bottom:.6em;font-size:15.5px;line-height:1.55}
+  .runlist li::marker{font-family:var(--mono);font-weight:700;color:var(--red)}
+  .runlist li i{font-style:italic}
+  .runlist.tight li{margin-bottom:.35em}
   .scanlegend{font-size:13px;color:var(--grey);margin:.2em 0 1.2em}
   .scanlegend .key{display:inline-block;margin:0 .15em}
 
@@ -136,10 +141,46 @@
 
 <nav>
   <a href="index.html">&larr; Back to the game</a>
+  <a href="#run">How to run it</a>
   <a href="#key">Answer key</a>
   <a href="#fast">Fast Money</a>
   <a href="#log">Session log</a>
 </nav>
+
+<h2 id="run">How to run it</h2>
+<p class="sectionnote">The game screen tells you the next move at every step &mdash; this is
+the same sequence in one place, for before you start.</p>
+
+<ol class="runlist">
+  <li><b>Open two windows.</b> The game on the projector, this page on your own screen.
+      Everything below is a spoiler.</li>
+  <li><b>Take the draw.</b> Four categories deal themselves and lock to rounds 1&ndash;4.
+      Reshuffle if you want a different set. Nobody &mdash; including you &mdash; gets to
+      park an easy category on the triple round.</li>
+  <li><b>Name the teams</b> on the board screen. Two teams, any size.</li>
+  <li><b>Each round:</b> read the question out loud &rarr; first team to buzz takes the
+      board &rarr; they <b>play</b> it or <b>pass</b> it &rarr; type what they say into the
+      guess box. Keywords count; you do not need the exact wording.</li>
+  <li><b>Three misses</b> opens a steal: the other team gets one guess at the whole bank.
+      Right and they take it, wrong and the team in control keeps it.</li>
+  <li><b>Rounds 3 and 4</b> double and triple. First to 300 ends it; four rounds with
+      nobody at 300 goes to sudden death.</li>
+  <li><b>Fast Money.</b> The winners send up two players &mdash; 20 seconds, then 25 with
+      no repeats, 200 combined to take it.</li>
+  <li><b>Beat the Board</b> is the point of the whole thing. Both teams write <i>one
+      prompt</i> that gets something genuinely different from the board&rsquo;s answers and
+      still does the job. Nonsense scores nothing. 90 seconds on the clock.</li>
+  <li><b>Debrief while it is warm.</b> The log below has every guess and every prompt.</li>
+</ol>
+
+<p class="sectionnote"><b>Three questions that make the debrief land:</b></p>
+<ol class="runlist tight">
+  <li>Which default on the board have you shipped yourself this cycle?</li>
+  <li>What did the prompt that beat the board actually <i>ask for</i> that a plain
+      prompt does not?</li>
+  <li>If a client can tell which parts of your RFP response came out of a chatbot,
+      what does that cost you?</li>
+</ol>
 
 <h2 id="key">The boards</h2>
 <p class="sectionnote">Ranked answers with the points they are worth at single value. Round 3

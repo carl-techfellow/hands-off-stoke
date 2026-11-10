@@ -188,10 +188,64 @@
     .rules-box li{padding:.2em 0}
   }
 
+  /* ================= SPA SHELL ================= */
+  .appbar{display:flex;align-items:center;gap:.6em;padding:.6em max(2.4vw,.8em);
+       background:var(--ink-soft);border-bottom:1px solid #3A3240;
+       position:sticky;top:0;z-index:60}
+  .abtitle{font-family:var(--mono);font-size:clamp(11px,1.6vw,13px);letter-spacing:.12em;
+       text-transform:uppercase;font-weight:700;color:var(--paper);
+       white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .abspacer{flex:1 1 auto;min-width:.4em}
+  .abscore{font-family:var(--mono);font-size:clamp(12px,2vw,15px);font-weight:700;
+       color:var(--paper);background:var(--ink);border:1.5px solid #3A3240;
+       border-radius:999px;padding:.25em .8em;white-space:nowrap}
+  .abscore em{color:var(--green);font-style:normal}
+  .abtn{font-family:var(--sans);font-size:12.5px;font-weight:700;color:var(--grey);
+       background:transparent;border:1.5px solid #3A3240;border-radius:999px;
+       padding:.35em .85em;cursor:pointer;text-decoration:none;white-space:nowrap}
+  .abtn:hover{color:var(--paper);border-color:var(--grey)}
+  .abtn.key{color:#FF8FA8;border-color:rgba(255,143,168,.4)}
+  .abtn.key:hover{color:var(--paper);border-color:var(--paper)}
+
+  /* the match timeline - where we are and what is left */
+  .stepper{display:flex;gap:.3em;align-items:center;padding:.7em max(2.4vw,.8em) 0;
+       overflow-x:auto;scrollbar-width:none}
+  .stepper::-webkit-scrollbar{display:none}
+  .step{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+       font-weight:700;color:var(--grey-dark);background:var(--ink-soft);
+       border:1.5px solid #2C2632;border-radius:999px;padding:.3em .7em;white-space:nowrap;
+       transition:color .2s ease,border-color .2s ease,background .2s ease}
+  .step.done{color:var(--green);border-color:rgba(47,158,88,.45)}
+  .step.now{color:#fff;background:var(--red);border-color:var(--red)}
+  .steptick{color:var(--grey-dark);font-size:9px;flex:0 0 auto}
+
+  /* the next-step coach line - always says what to do right now */
+  .coach{display:flex;gap:.7em;align-items:flex-start;
+       margin:.8em max(2.4vw,.8em) 0;padding:.7em .95em;
+       background:rgba(214,0,60,.08);border:1.5px solid rgba(214,0,60,.35);
+       border-left:4px solid var(--red);border-radius:10px}
+  .coach b{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+       color:#FF8FA8;flex:0 0 auto;padding-top:.25em}
+  .coach span{font-size:clamp(13.5px,2.1vw,15.5px);line-height:1.45;color:var(--paper)}
+  .coach span i{font-style:normal;color:#FF8FA8;font-weight:700}
+  .coach.done{background:rgba(47,158,88,.1);border-color:rgba(47,158,88,.4);
+       border-left-color:var(--green)}
+  .coach.done b{color:#7FBF9B}
+
+  @media (max-width:540px){
+    .appbar{flex-wrap:wrap;gap:.4em .5em}
+    .abtitle{order:-1;flex:1 1 100%}
+    .coach{flex-direction:column;gap:.25em}
+    .coach b{padding-top:0}
+  }
+
   /* ================= PROMPT FEUD ================= */
   .feud-wrap{flex:1;display:flex;flex-direction:column;align-items:center;
        padding:3vh 4vw 10vh;gap:0}
-  .fscreen{display:none;width:100%;flex-direction:column;align-items:center}
+  .fscreen{display:none;width:100%;flex-direction:column;align-items:center;
+       opacity:0;transition:opacity .3s ease}
+  .fscreen.active{opacity:1}
+  @media (prefers-reduced-motion:reduce){.fscreen{transition:none}}
   .fscreen.active{display:flex}
 
   .fhead{font-weight:900;font-size:clamp(22px,4.4vw,38px);text-transform:uppercase;
@@ -255,6 +309,7 @@
   /* teams */
   .teams{display:grid;grid-template-columns:1fr 1fr;gap:.9em;
        width:100%;max-width:min(94vw,46em);margin-bottom:1.2em}
+  @media (max-width:420px){.teams{gap:.5em}}
   .bank{font-family:var(--mono);font-size:clamp(14px,2.2vw,17px);font-weight:700;
        letter-spacing:.1em;text-transform:uppercase;text-align:center;
        background:var(--ink-soft);border:2px solid #3A3240;border-radius:999px;
@@ -295,6 +350,7 @@
        text-transform:uppercase;font-weight:700;color:#FF8FA8;margin-bottom:.9em;text-align:center}
   .lineup{display:grid;grid-template-columns:repeat(4,1fr);gap:.5em;width:100%;
        max-width:min(94vw,46em);margin:1.1em 0 1.2em}
+  @media (max-width:560px){.lineup{grid-template-columns:1fr 1fr}}
   .lslot{background:var(--ink-soft);border:2px dashed #3A3240;border-radius:10px;
        padding:.6em .5em;text-align:center}
   .lslot.filled{border-style:solid;border-color:var(--green)}
@@ -319,6 +375,10 @@
 
   /* the guess box */
   .guessrow{display:flex;gap:.5em;width:100%;max-width:min(94vw,40em);margin:0 0 .5em}
+  @media (max-width:520px){
+    .guessrow{flex-direction:column}
+    .guessrow .fbtn{width:100%}
+  }
   .guessrow[hidden]{display:none}
   .guessin{flex:1 1 auto;min-width:0;font-family:var(--sans);font-size:16px;
        padding:.7em .9em;border-radius:10px;border:2px solid var(--grey-dark);
@@ -337,6 +397,7 @@
   /* fast money */
   .fastgrid{display:flex;flex-direction:column;gap:.7em;width:100%;
        max-width:min(94vw,50em);margin-bottom:1.2em}
+  @media (max-width:480px){.fastrow{padding:.6em .7em}.fopt{font-size:12px}}
   .fastrow{background:var(--ink-soft);border:2px solid #3A3240;border-radius:10px;padding:.7em .9em}
   .fq{font-size:14.5px;font-weight:700;margin-bottom:.5em;text-align:left}
   .fopts{display:flex;flex-wrap:wrap;gap:.35em}
@@ -433,7 +494,15 @@
 </div>
 
 <div class="app" id="feudApp" hidden>
-  <div class="banner idle" id="feudBanner">Prompt Feud &middot; host screen</div>
+  <div class="appbar">
+    <button class="abtn" data-backmode type="button">&#8592; Games</button>
+    <span class="abtitle">Prompt Feud</span>
+    <span class="abspacer"></span>
+    <span class="abscore" id="abScore">0 &ndash; 0</span>
+    <a class="abtn key" href="admin.html" target="_blank" rel="noopener">Answer key</a>
+  </div>
+  <div class="stepper" id="stepper"></div>
+  <div class="coach" id="coach"><b>Next</b><span id="coachText">&mdash;</span></div>
   <div class="feud-wrap">
 
     <!-- ---------- SETUP: build the lineup ---------- -->
@@ -452,7 +521,7 @@
         <button class="fbtn go" id="startMatchBtn">Start the match</button>
       </div>
       <p class="adminlink"><a href="admin.html" target="_blank" rel="noopener">Answer key
-      &amp; session log &rarr;</a><br><span>Open this on your own screen, not the projector.</span></p>
+      &amp; session log &rarr;</a><br><span>Open it on your own screen, never the projector.</span></p>
 
       <details class="swapbox">
         <summary>Swap a category by hand</summary>
@@ -590,13 +659,18 @@
     </section>
 
   </div>
-  <button class="backmode" data-backmode>&#8592; pick a different game</button>
 </div>
 
-
 <div class="app" id="pictionaryApp" hidden>
+  <div class="appbar">
+    <button class="abtn" data-backmode type="button">&#8592; Games</button>
+    <span class="abtitle">Prompt Pictionary</span>
+    <span class="abspacer"></span>
+    <span class="abscore" id="pScore" hidden></span>
+  </div>
   <div class="banner idle" id="banner">A guessing game for two people</div>
   <div class="dots" id="dots"></div>
+  <div class="coach" id="pCoach"><b>Next</b><span id="pCoachText">&mdash;</span></div>
   <div class="scorebar"><span class="scorechip" id="scoreChip" hidden></span></div>
   <div class="screens">
 
@@ -965,6 +1039,26 @@
     }
   }
 
+  var P_COACH = [
+    'Two people, one screen. Press <b>Start</b> when you are both sitting together.',
+    'Person A: press <b>Deal me a card</b> and keep it to yourself. ' +
+      'Person B, look away for a second.',
+    'Person A: copy the prompt into any chatbot and run it. ' +
+      'Do not use the words on the do-not list.',
+    'Person A: paste the chatbot&rsquo;s answer in, then hand the screen over. ' +
+      'The task itself stays hidden.',
+    'Person B: you have <b>45 seconds</b>. Read the output and say what task A was given.',
+    'Compare the guess to the real task, press <b>They got it</b> if B was close, ' +
+      'then swap seats and go again.'
+  ];
+
+  function setPCoach(n){
+    var el = document.getElementById('pCoachText');
+    if (el) el.innerHTML = P_COACH[n] || '';
+    var box = document.getElementById('pCoach');
+    if (box) box.className = 'coach' + (n === P_COACH.length - 1 ? ' done' : '');
+  }
+
   function goTo(n){
     // clear every screen, not just the previous one - keeps exactly one visible
     // even if `current` and the markup ever disagree
@@ -972,6 +1066,8 @@
     current = n;
     screens[current].classList.add('active');
     updateBanner(current);
+    setPCoach(current);
+    route('pictionary', current);
     dots.forEach(function(d, i){
       d.classList.toggle('active', i === current);
       d.classList.toggle('done', i < current);
@@ -1378,6 +1474,7 @@
     fsSudden.classList.toggle('active', which === 'sudden');
     fsFast.classList.toggle('active', which === 'fast');
     fsRound2.classList.toggle('active', which === 'round2');
+    route('feud', which);
   }
 
   // ---------------- setup: build the lineup ----------------
@@ -1409,6 +1506,16 @@
       lineupEl.appendChild(d);
     }
     document.getElementById('startMatchBtn').disabled = (lineup.length < 4);
+    if (fsPick.classList.contains('active')) {
+      paintStepper(0);
+      setCoach(lineup.length < 4
+        ? 'Pick ' + (4 - lineup.length) + ' more ' +
+          (4 - lineup.length === 1 ? 'category' : 'categories') +
+          ' below, or <b>Reshuffle</b> for a fresh draw.'
+        : 'Name the two teams on the next screen as you go. When the room is ready, ' +
+          'press <b>Start the match</b>.');
+      paintBarScore();
+    }
     var hint = document.getElementById('lineupHint');
     if (hint) hint.textContent = (lineup.length < 4)
       ? ('Pick ' + (4 - lineup.length) + ' more below, or reshuffle for a fresh draw.')
@@ -1524,6 +1631,73 @@
     else turnHint.textContent = 'In control: ' + tname(control);
   }
 
+  // ---- the match timeline -------------------------------------------------
+  var STEPS = ['Draw', 'R1', 'R2', 'R3 \u00d72', 'R4 \u00d73', 'Fast Money', 'Last word'];
+  var stepperEl = document.getElementById('stepper');
+  STEPS.forEach(function(label, i){
+    if (i) {
+      var t = document.createElement('span');
+      t.className = 'steptick';
+      t.textContent = '\u2022';
+      stepperEl.appendChild(t);
+    }
+    var e = document.createElement('span');
+    e.className = 'step';
+    e.textContent = label;
+    e.setAttribute('data-step', i);
+    stepperEl.appendChild(e);
+  });
+
+  function paintStepper(at){
+    [].slice.call(stepperEl.querySelectorAll('.step')).forEach(function(e, i){
+      e.classList.toggle('now', i === at);
+      e.classList.toggle('done', i < at);
+    });
+    var now = stepperEl.querySelector('.step.now');
+    if (now && now.scrollIntoView) {
+      try { now.scrollIntoView({block: 'nearest', inline: 'center'}); } catch (err) {}
+    }
+  }
+
+  // ---- what to do right now ----------------------------------------------
+  function setCoach(msg, done){
+    document.getElementById('coachText').innerHTML = msg;
+    document.getElementById('coach').className = 'coach' + (done ? ' done' : '');
+  }
+
+  function who(i){ return '<i>' + esc(tname(i)) + '</i>'; }
+
+  function coachForBoard(){
+    var left = currentBoard.answers.length -
+               boardGrid.querySelectorAll('.slot.revealed').length;
+    if (phase === 'faceoff') {
+      return 'Read the question out loud. First team to buzz takes the board &mdash; ' +
+             'tap whoever buzzed.';
+    }
+    if (phase === 'playpass') {
+      return who(faceoffWinner) + ' won the buzz. Ask them: <b>play</b> this board, ' +
+             'or <b>pass</b> it to ' + who(1 - faceoffWinner) + '?';
+    }
+    if (phase === 'steal') {
+      return who(1 - control) + ' gets <b>one guess</b> for the whole bank of ' + bank +
+             '. Right and they take it; wrong and ' + who(control) + ' keeps it.';
+    }
+    if (strikes === 2) {
+      return 'Two strikes. One more miss and ' + who(1 - control) +
+             ' gets a single guess at all ' + bank + ' points.';
+    }
+    if (left === 0) {
+      return 'Board cleared. Press <b>Award bank &amp; end round</b> to give ' +
+             who(control) + ' all ' + bank + '.';
+    }
+    if (bank > 0) {
+      return left + (left === 1 ? ' answer' : ' answers') + ' left and ' + bank +
+             ' in the bank. Keep guessing, or bank it before a third strike.';
+    }
+    return 'Type what ' + who(control) + ' says into the box and press enter. ' +
+           'Keywords are enough. Three misses hands the board over.';
+  }
+
   function paintAll(){
     var m = multiplier();
     roundChip.textContent = 'Round ' + (roundIdx + 1) + ' of 4' +
@@ -1546,6 +1720,16 @@
     paintStrikes();
     paintTeams();
     paintHint();
+    paintStepper(roundIdx + 1);
+    setCoach(coachForBoard());
+    paintBarScore();
+  }
+
+  function paintBarScore(){
+    document.getElementById('abScore').innerHTML =
+      (teams[0].score > teams[1].score ? '<em>' + teams[0].score + '</em>' : teams[0].score) +
+      ' \u2013 ' +
+      (teams[1].score > teams[0].score ? '<em>' + teams[1].score + '</em>' : teams[1].score);
   }
 
   function revealSlot(i){
@@ -1704,6 +1888,9 @@
       row.appendChild(d);
     });
     phase = 'over';
+    paintStepper(5);
+    setCoach('Four rounds, nobody at ' + TARGET + '. One question, first correct answer ' +
+             'wins the match &mdash; tap the team that got it.');
     fshow('sudden');
   }
   document.getElementById('sd1Btn').addEventListener('click', function(){
@@ -1799,6 +1986,11 @@
     clearInterval(fastInterval); fastInterval = null;
     document.getElementById('fastTimer').textContent = '20';
     paintFast();
+    paintStepper(5);
+    setCoach('Two players from ' + who(fastWinnerIdx()) + '. Start the <b>20-second</b> ' +
+             'clock for player one and tap each answer they match, then switch to player ' +
+             'two for <b>25 seconds</b> &mdash; no repeats. ' + FAST_TARGET + ' combined wins it.');
+    paintBarScore();
     fshow('fast');
   }
 
@@ -1959,6 +2151,11 @@
     r2TimerEl.classList.remove('low', 'flash');
     r2TimerBtn.disabled = false;
     paintR2Teams();
+    paintStepper(6);
+    setCoach('Both teams write one prompt that escapes the board. Start the ' +
+             '<b>90-second</b> timer, then tap a team to paste what their AI produced ' +
+             'and rule on it.');
+    paintBarScore();
     fshow('round2');
   });
 
@@ -1971,6 +2168,10 @@
     winnerLine.hidden = false;
     winnerLine.textContent = (names.length > 1 ? 'Tied at ' : 'Winner: ') +
       names.join(' & ') + ' - ' + best + ' points';
+    setCoach('Debrief while it is fresh: which default surprised them, and which prompt ' +
+             'beat the board? The whole match is in the <b>answer key &amp; session log</b> ' +
+             'tab. <b>New match</b> redraws four fresh categories.', true);
+    paintBarScore();
     beep(900, 0.5);
   });
 
@@ -1978,8 +2179,9 @@
     drawLineup(); roundIdx = 0; bank = 0; strikes = 0;
     teams[0].score = 0; teams[1].score = 0;
     teams.forEach(function(t){ t.r2 = null; t.r2text = ''; });
-    paintLineup();
+    currentBoard = null;
     fshow('pick');
+    paintLineup();
   });
 
   document.getElementById('deckCount').textContent = BOARDS.length;
@@ -1989,30 +2191,104 @@
   paintTeams();
 
 
-  // ---------- mode switching ----------
+  // ---------- mode switching + hash routing ----------
+  // Every screen has a URL. Deep links work, the back button works, and nothing
+  // ever reloads the page - which also means a match survives an accidental
+  // back-press as long as the state is still in memory.
   var modePicker = document.getElementById('modePicker');
   var docEl = document.querySelector('.doc');
 
-  function showMode(which){
+  var FEUD_PATH = { pick: 'lineup', board: 'board', sudden: 'sudden-death',
+                    fast: 'fast-money', round2: 'beat-the-board' };
+  var FEUD_SCREEN = {};
+  Object.keys(FEUD_PATH).forEach(function(k){ FEUD_SCREEN[FEUD_PATH[k]] = k; });
+
+  var routing = false;   // guards the hashchange <-> setter loop
+  var mode = 'picker';
+
+  function hashFor(m, sub){
+    if (m === 'feud') return '#/feud/' + (FEUD_PATH[sub] || 'lineup');
+    if (m === 'pictionary') return '#/pictionary/' + (sub || 0);
+    return '#/';
+  }
+
+  // called by fshow()/goTo() - keeps the address bar in step with the screen
+  function route(m, sub){
+    if (routing) return;
+    if (m !== mode) return;   // a screen that is not on stage does not own the URL
+    var want = hashFor(m, sub);
+    if (location.hash === want) return;
+    routing = true;
+    try {
+      if (history.replaceState) history.replaceState(null, '', want);
+      else location.hash = want;
+    } catch (e) { location.hash = want; }
+    routing = false;
+  }
+
+  function showMode(which, sub){
+    mode = which;
     var picking = (which === 'picker');
     modePicker.hidden = !picking;
     pictionaryApp.hidden = (which !== 'pictionary');
     feudApp.hidden = (which !== 'feud');
     if (docEl) docEl.hidden = (which !== 'pictionary');
     window.scrollTo(0, 0);
+    if (!routing) {
+      var want = hashFor(which, sub);
+      if (location.hash !== want) {
+        routing = true;
+        try {
+          if (history.pushState) history.pushState(null, '', want);
+          else location.hash = want;
+        } catch (e) { location.hash = want; }
+        routing = false;
+      }
+    }
   }
 
   document.getElementById('modePictionary').addEventListener('click', function(){
-    showMode('pictionary');
+    showMode('pictionary', current);
   });
   document.getElementById('modeFeud').addEventListener('click', function(){
     fshow('pick');
-    showMode('feud');
+    showMode('feud', 'pick');
   });
   [].slice.call(document.querySelectorAll('[data-backmode]')).forEach(function(b){
     b.addEventListener('click', function(){ showMode('picker'); });
   });
-  showMode('picker');
+
+  // hash -> screen. A deep link into a live-match screen with no match running
+  // lands on the lineup instead of a board full of nothing.
+  function applyHash(){
+    var h = (location.hash || '').replace(/^#\/?/, '').replace(/\/$/, '');
+    var parts = h.split('/').filter(Boolean);
+    var landedMode = 'picker', landedSub = null;
+    routing = true;
+    try {
+      if (parts[0] === 'feud') {
+        var want = FEUD_SCREEN[parts[1]] || 'pick';
+        if (want !== 'pick' && !currentBoard) want = 'pick';
+        fshow(want);
+        showMode('feud', want);
+        landedMode = 'feud'; landedSub = want;
+      } else if (parts[0] === 'pictionary') {
+        var n = parseInt(parts[1], 10);
+        if (isNaN(n) || n < 0 || n >= screens.length) n = 0;
+        goTo(n);
+        showMode('pictionary', n);
+        landedMode = 'pictionary'; landedSub = n;
+      } else {
+        showMode('picker');
+      }
+    } finally { routing = false; }
+    // a link that asked for a screen we could not give it should not leave the
+    // address bar lying about where we are
+    route(landedMode, landedSub);
+  }
+
+  window.addEventListener('hashchange', applyHash);
+  applyHash();
 
   document.getElementById('revealWhy').addEventListener('click', function(){
     document.getElementById('whyText').classList.toggle('shown');

@@ -243,6 +243,23 @@ ADMIN_HARNESS = r"""
         document.querySelector('.warn').textContent.toLowerCase().indexOf('projector') > -1);
     chk('provenance stated in the footer',
         document.querySelector('footer').textContent.indexOf('not measured') > -1);
+
+    // the run-through: the host should not have to reconstruct the order of play
+    var run = document.querySelectorAll('#run, .runlist');
+    chk('a how-to-run section exists', document.getElementById('run') !== null);
+    chk('the run-through is a numbered sequence',
+        document.querySelectorAll('.runlist')[0].tagName === 'OL');
+    chk('the run-through covers the whole match',
+        document.querySelectorAll('.runlist')[0].children.length >= 8);
+    var runText = document.querySelectorAll('.runlist')[0].textContent.toLowerCase();
+    ['two windows', 'draw', 'play', 'pass', 'steal', 'sudden death', 'fast money',
+     'beat the board', 'debrief'].forEach(function(bit){
+      chk('run-through mentions ' + bit, runText.indexOf(bit) > -1);
+    });
+    chk('debrief questions supplied',
+        document.querySelectorAll('.runlist.tight')[0].children.length === 3);
+    chk('how-to-run is in the nav',
+        document.querySelector('nav a[href="#run"]') !== null);
   } catch(e){ log.push('FAIL threw: ' + e.message); }
   var o = document.createElement('pre'); o.id='ADMIN'; o.textContent = log.join(' | ');
   document.body.appendChild(o);
