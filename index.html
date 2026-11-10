@@ -25,8 +25,38 @@
     .bigbtn{padding:.85em 1.3em;font-size:15px}
   }
 
+  /* ================= MODE PICKER ================= */
+  .picker{min-height:100svh;display:flex;flex-direction:column;align-items:center;
+       justify-content:center;text-align:center;padding:5vh 6vw;gap:0}
+  .picker[hidden]{display:none}
+  .picker .ptitle{font-weight:900;font-size:clamp(28px,6vw,52px);text-transform:uppercase;
+       letter-spacing:-.02em;line-height:1.02;margin-bottom:.3em;text-wrap:balance}
+  .picker .psub{font-size:clamp(15px,2.3vw,19px);color:var(--grey);max-width:40ch;
+       margin-bottom:2.2em;line-height:1.5}
+  .modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));
+       gap:1.2em;width:100%;max-width:min(92vw,46em)}
+  .mode{background:var(--ink-soft);border:2px solid #3A3240;border-radius:16px;
+       padding:1.6em 1.5em;text-align:left;cursor:pointer;color:var(--paper);
+       font-family:var(--sans);transition:border-color .15s ease,transform .08s ease;
+       display:flex;flex-direction:column;gap:.5em}
+  .mode:hover:not(:disabled){border-color:var(--red);transform:translateY(-2px)}
+  .mode:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+  .mode:disabled{opacity:.45;cursor:not-allowed}
+  .mode .mi{font-size:34px;line-height:1}
+  .mode .mname{font-weight:900;font-size:19px;text-transform:uppercase;letter-spacing:-.01em}
+  .mode .mdesc{font-size:14.5px;color:var(--grey);line-height:1.45}
+  .mode .mmeta{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+       text-transform:uppercase;color:#FF8FA8;font-weight:700}
+  .backmode{position:fixed;bottom:2.2vh;left:2.4vw;z-index:50;font-size:12px;
+       color:var(--grey);background:none;border:none;cursor:pointer;
+       text-decoration:underline;opacity:.6;font-family:var(--sans)}
+  .backmode:hover{opacity:1}
+
   /* ================= THE APP ================= */
   .app{position:relative;min-height:100svh;display:flex;flex-direction:column}
+  /* display:flex above outruns the UA [hidden] rule on specificity, so hiding a
+     mode needs saying explicitly - otherwise its fixed-position buttons leak */
+  .app[hidden]{display:none}
   .banner{text-align:center;font-family:var(--mono);font-size:clamp(11px,1.5vw,13px);
        letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:.85em 1.2em;
        transition:background .3s ease,color .3s ease;line-height:1.4}
@@ -192,7 +222,30 @@
 <!-- ============================================================ -->
 <!-- THE APP — one screen at a time                                -->
 <!-- ============================================================ -->
-<div class="app">
+<div class="picker" id="modePicker">
+  <div class="big-emoji">🎲</div>
+  <h1 class="ptitle">Pick a game</h1>
+  <p class="psub">Both are about writing instructions a computer can actually follow.
+  One is for two people. One is for the whole room.</p>
+  <div class="modes">
+    <button class="mode" id="modePictionary" type="button">
+      <span class="mi">🎨</span>
+      <span class="mname">Prompt Pictionary</span>
+      <span class="mmeta">2 players · 10 min</span>
+      <span class="mdesc">One of you gets a secret task and asks a computer to do it.
+      Your partner sees only what the computer made — and has to guess the task.</span>
+    </button>
+    <button class="mode" id="modeFeud" type="button" disabled>
+      <span class="mi">📋</span>
+      <span class="mname">Prompt Feud</span>
+      <span class="mmeta">Whole room · coming soon</span>
+      <span class="mdesc">We asked a computer the same question over and over. Guess its
+      most common answers — then write a prompt that escapes them.</span>
+    </button>
+  </div>
+</div>
+
+<div class="app" id="pictionaryApp" hidden>
   <div class="banner idle" id="banner">A guessing game for two people</div>
   <div class="dots" id="dots"></div>
   <div class="scorebar"><span class="scorechip" id="scoreChip" hidden></span></div>
@@ -322,6 +375,7 @@
 
   </div>
   <button class="skip" id="aboutBtn">why are we doing this? (ask after a few rounds)</button>
+  <button class="backmode" data-backmode>← pick a different game</button>
 </div>
 
 <!-- ============================================================ -->
@@ -527,7 +581,10 @@
   }
 
   // ---------- screen router ----------
-  var screens = [].slice.call(document.querySelectorAll('.screen'));
+  // scoped to this mode's container on purpose - a flat document-wide query would
+  // pick up any future mode's screens and silently shift every index
+  var pictionaryApp = document.getElementById('pictionaryApp');
+  var screens = [].slice.call(pictionaryApp.querySelectorAll('.screen'));
   var dotsEl = document.getElementById('dots');
   var current = 0;
   screens.forEach(function(){
@@ -804,6 +861,26 @@
   document.getElementById('aboutBtn').addEventListener('click', function(){
     document.querySelector('.doc').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
   });
+  // ---------- mode switching ----------
+  var modePicker = document.getElementById('modePicker');
+  var docEl = document.querySelector('.doc');
+
+  function showMode(which){
+    var picking = (which === 'picker');
+    modePicker.hidden = !picking;
+    pictionaryApp.hidden = (which !== 'pictionary');
+    if (docEl) docEl.hidden = picking;
+    window.scrollTo(0, 0);
+  }
+
+  document.getElementById('modePictionary').addEventListener('click', function(){
+    showMode('pictionary');
+  });
+  [].slice.call(document.querySelectorAll('[data-backmode]')).forEach(function(b){
+    b.addEventListener('click', function(){ showMode('picker'); });
+  });
+  showMode('picker');
+
   document.getElementById('revealWhy').addEventListener('click', function(){
     document.getElementById('whyText').classList.toggle('shown');
   });
