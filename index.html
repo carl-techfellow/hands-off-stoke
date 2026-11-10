@@ -188,6 +188,94 @@
     .rules-box li{padding:.2em 0}
   }
 
+  /* ================= PROMPT FEUD ================= */
+  .feud-wrap{flex:1;display:flex;flex-direction:column;align-items:center;
+       padding:3vh 4vw 10vh;gap:0}
+  .fscreen{display:none;width:100%;flex-direction:column;align-items:center}
+  .fscreen.active{display:flex}
+
+  .fhead{font-weight:900;font-size:clamp(22px,4.4vw,38px);text-transform:uppercase;
+       letter-spacing:-.015em;line-height:1.05;text-align:center;margin-bottom:.35em;
+       text-wrap:balance}
+  .fsub{font-size:clamp(14px,2.1vw,18px);color:var(--grey);text-align:center;
+       max-width:46ch;margin-bottom:1.8em;line-height:1.5}
+
+  .boardlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+       gap:.9em;width:100%;max-width:min(94vw,52em)}
+  .boardpick{background:var(--ink-soft);border:2px solid #3A3240;border-radius:12px;
+       padding:1.1em 1.2em;text-align:left;cursor:pointer;color:var(--paper);
+       font-family:var(--sans);font-size:15.5px;font-weight:600;line-height:1.4;
+       transition:border-color .15s ease,transform .08s ease}
+  .boardpick:hover{border-color:var(--red);transform:translateY(-2px)}
+  .boardpick:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+  .boardpick .bptag{display:block;font-family:var(--mono);font-size:10px;
+       letter-spacing:.1em;text-transform:uppercase;color:#FF8FA8;font-weight:700;
+       margin-bottom:.4em}
+
+  /* the question strip */
+  .asked{background:var(--red);color:#fff;border-radius:12px;padding:.9em 1.4em;
+       font-size:clamp(15px,2.4vw,21px);font-weight:700;text-align:center;
+       max-width:min(94vw,46em);margin-bottom:1.2em;line-height:1.35;text-wrap:balance}
+
+  /* the board */
+  .board{display:grid;grid-template-columns:1fr;gap:.55em;width:100%;
+       max-width:min(94vw,46em);margin-bottom:1.3em}
+  @media (min-width:760px){.board{grid-template-columns:1fr 1fr}}
+  .slot{display:flex;align-items:center;gap:.9em;background:var(--ink-soft);
+       border:2px solid #3A3240;border-radius:10px;padding:.85em 1em;cursor:pointer;
+       font-family:var(--sans);color:var(--paper);text-align:left;width:100%;
+       transition:background .2s ease,border-color .2s ease}
+  .slot:hover:not(.revealed){border-color:var(--red)}
+  .slot:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+  .slot .snum{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--grey);
+       width:1.6em;flex:none;text-align:center}
+  .slot .stext{flex:1;font-size:15.5px;font-weight:700;letter-spacing:.18em;color:var(--grey-dark)}
+  .slot .spts{font-family:var(--mono);font-size:16px;font-weight:700;color:transparent;
+       flex:none;min-width:2.2em;text-align:right}
+  .slot.revealed{background:var(--wash);border-color:var(--wash)}
+  .slot.revealed .snum{color:var(--red)}
+  .slot.revealed .stext{color:var(--ink);letter-spacing:0;font-weight:700}
+  .slot.revealed .spts{color:var(--red)}
+
+  /* strikes */
+  .strikes{display:flex;gap:.5em;justify-content:center;margin-bottom:1.1em;min-height:2.4em;
+       align-items:center}
+  .strikeslot{width:2.1em;height:2.1em;border:2.5px solid #3A3240;border-radius:8px;
+       display:flex;align-items:center;justify-content:center;font-size:20px;
+       font-weight:900;color:transparent}
+  .strikeslot.on{border-color:var(--red);color:var(--red)}
+  .strikeflash{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+       font-size:min(42vw,340px);color:var(--red);z-index:90;pointer-events:none;
+       font-weight:900;text-shadow:0 0 60px rgba(214,0,60,.6)}
+  .strikeflash.show{display:flex;animation:strikepop .7s ease}
+  @keyframes strikepop{0%{transform:scale(.4);opacity:0}25%{transform:scale(1.1);opacity:1}
+       70%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.strikeflash.show{animation:none;opacity:.9}}
+
+  /* teams */
+  .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6em;
+       width:100%;max-width:min(94vw,46em);margin-bottom:1.2em}
+  .team{background:var(--ink-soft);border:2px solid #3A3240;border-radius:12px;
+       padding:.7em .8em;cursor:pointer;text-align:center;transition:border-color .15s ease}
+  .team.active{border-color:var(--green);background:rgba(47,158,88,.14)}
+  .team .tname{background:none;border:none;color:var(--paper);font-family:var(--sans);
+       font-size:13.5px;font-weight:700;text-align:center;width:100%;padding:.1em 0;
+       text-transform:uppercase;letter-spacing:.04em}
+  .team .tname:focus{outline:1px dashed var(--grey-dark);border-radius:4px}
+  .team .tscore{font-family:var(--mono);font-size:25px;font-weight:900;
+       font-variant-numeric:tabular-nums;color:var(--paper);line-height:1.2}
+  .team.active .tscore{color:var(--green)}
+  .turnhint{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;
+       text-transform:uppercase;color:var(--grey);text-align:center;margin-bottom:1em}
+
+  .fbtns{display:flex;gap:.7em;flex-wrap:wrap;justify-content:center}
+  .fbtn{font-family:var(--sans);font-weight:700;font-size:14.5px;border:none;
+       border-radius:10px;padding:.75em 1.2em;cursor:pointer;background:var(--ink-soft);
+       color:var(--paper);border:2px solid #3A3240;transition:transform .08s ease}
+  .fbtn:hover{transform:translateY(-1px);border-color:var(--grey-dark)}
+  .fbtn.danger{background:var(--red);border-color:var(--red);color:#fff}
+  .fbtn.go{background:var(--green);border-color:var(--green);color:#fff}
+
   /* ================= THE DOCUMENT (below the app) ================= */
   .doc{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;
        padding:6vh 6vw 12vh;max-width:56rem;margin:0 auto}
@@ -222,6 +310,8 @@
 <!-- ============================================================ -->
 <!-- THE APP — one screen at a time                                -->
 <!-- ============================================================ -->
+<div class="strikeflash" id="strikeFlash">✕</div>
+
 <div class="picker" id="modePicker">
   <div class="big-emoji">🎲</div>
   <h1 class="ptitle">Pick a game</h1>
@@ -235,14 +325,52 @@
       <span class="mdesc">One of you gets a secret task and asks a computer to do it.
       Your partner sees only what the computer made — and has to guess the task.</span>
     </button>
-    <button class="mode" id="modeFeud" type="button" disabled>
+    <button class="mode" id="modeFeud" type="button">
       <span class="mi">📋</span>
       <span class="mname">Prompt Feud</span>
-      <span class="mmeta">Whole room · coming soon</span>
+      <span class="mmeta">Whole room · 4 teams · 15 min</span>
       <span class="mdesc">We asked a computer the same question over and over. Guess its
       most common answers — then write a prompt that escapes them.</span>
     </button>
   </div>
+</div>
+
+<div class="app" id="feudApp" hidden>
+  <div class="banner idle" id="feudBanner">Prompt Feud · host screen</div>
+  <div class="feud-wrap">
+
+    <section class="fscreen active" id="fsPick">
+      <div class="big-emoji">📋</div>
+      <h2 class="fhead">Pick a board</h2>
+      <p class="fsub">Each one is a question we put to an AI over and over. The board holds
+      its six most common answers — teams have to guess them.</p>
+      <div class="boardlist" id="boardList"></div>
+    </section>
+
+    <section class="fscreen" id="fsBoard">
+      <div class="asked" id="askedText">—</div>
+
+      <div class="strikes" id="strikeRow">
+        <span class="strikeslot">✕</span>
+        <span class="strikeslot">✕</span>
+        <span class="strikeslot">✕</span>
+      </div>
+
+      <div class="board" id="boardGrid"></div>
+
+      <p class="turnhint" id="turnHint">Tap a team to put them on the clock</p>
+      <div class="teams" id="teamRow"></div>
+
+      <div class="fbtns">
+        <button class="fbtn danger" id="strikeBtn">✕ Strike</button>
+        <button class="fbtn" id="nextTeamBtn">→ Next team</button>
+        <button class="fbtn" id="revealAllBtn">Reveal all</button>
+        <button class="fbtn go" id="newBoardBtn">Pick a new board</button>
+      </div>
+    </section>
+
+  </div>
+  <button class="backmode" data-backmode>← pick a different game</button>
 </div>
 
 <div class="app" id="pictionaryApp" hidden>
@@ -861,6 +989,173 @@
   document.getElementById('aboutBtn').addEventListener('click', function(){
     document.querySelector('.doc').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
   });
+  // ================= PROMPT FEUD =================
+  // Answers are authored from well-known model defaults, not measured runs - so
+  // points are rank-based (30/25/20/15/10/5) rather than invented survey counts.
+  var BOARDS = [
+    { tag: "Email", asked: "We asked an AI to write the first line of a professional email.",
+      answers: ["I hope this email finds you well", "I hope you are doing well",
+                "I hope this message finds you well", "Thank you for reaching out",
+                "I wanted to follow up on", "I hope you are having a great week"] },
+    { tag: "Story", asked: "We asked an AI to write the opening line of a story.",
+      answers: ["Once upon a time", "It was a dark and stormy night",
+                "The rain fell steadily", "In a small village",
+                "She had always known", "Little did they know"] },
+    { tag: "Marketing", asked: "We asked an AI for marketing copy. Which words did it reach for?",
+      answers: ["Elevate", "Unlock", "Seamless", "Empower", "Transform", "Cutting-edge"] },
+    { tag: "Description", asked: "We asked an AI to describe a sunset.",
+      answers: ["Painted the sky", "Hues of orange and pink", "Golden glow",
+                "Breathtaking", "The horizon", "Fiery"] },
+    { tag: "Metaphor", asked: "We asked an AI for a metaphor about teamwork.",
+      answers: ["A well-oiled machine", "Rowing in the same direction",
+                "Greater than the sum of its parts", "A symphony playing together",
+                "Puzzle pieces fitting together", "Only as strong as the weakest link"] },
+    { tag: "Naming", asked: "We asked an AI to name a fictional coffee shop.",
+      answers: ["The Daily Grind", "Bean There", "Brew Haven",
+                "Grounds for Celebration", "Perk Up", "The Rusty Bean"] }
+  ];
+  var POINTS = [30, 25, 20, 15, 10, 5];
+
+  var feudApp = document.getElementById('feudApp');
+  var fsPick = document.getElementById('fsPick');
+  var fsBoard = document.getElementById('fsBoard');
+  var boardList = document.getElementById('boardList');
+  var boardGrid = document.getElementById('boardGrid');
+  var askedText = document.getElementById('askedText');
+  var teamRow = document.getElementById('teamRow');
+  var strikeRow = document.getElementById('strikeRow');
+  var turnHint = document.getElementById('turnHint');
+  var strikeFlash = document.getElementById('strikeFlash');
+
+  var teams = [
+    { name: "Team 1", score: 0 }, { name: "Team 2", score: 0 },
+    { name: "Team 3", score: 0 }, { name: "Team 4", score: 0 }
+  ];
+  var activeTeam = 0, strikes = 0, currentBoard = null;
+
+  function fshow(which){
+    fsPick.classList.toggle('active', which === 'pick');
+    fsBoard.classList.toggle('active', which === 'board');
+  }
+
+  function updateHint(){
+    turnHint.textContent = 'On the clock: ' + (teams[activeTeam].name || 'Team ' + (activeTeam + 1));
+  }
+
+  function paintTeams(){
+    teamRow.innerHTML = '';
+    teams.forEach(function(t, i){
+      var d = document.createElement('div');
+      d.className = 'team' + (i === activeTeam ? ' active' : '');
+      var inp = document.createElement('input');
+      inp.className = 'tname';
+      inp.value = t.name;
+      inp.setAttribute('aria-label', 'Team name');
+      inp.addEventListener('input', function(){ t.name = inp.value; updateHint(); });
+      inp.addEventListener('click', function(e){ e.stopPropagation(); });
+      var sc = document.createElement('div');
+      sc.className = 'tscore';
+      sc.textContent = t.score;
+      d.appendChild(inp);
+      d.appendChild(sc);
+      d.addEventListener('click', function(){ activeTeam = i; paintTeams(); });
+      teamRow.appendChild(d);
+    });
+    updateHint();
+  }
+
+  function paintStrikes(){
+    var slots = strikeRow.querySelectorAll('.strikeslot');
+    for (var i = 0; i < slots.length; i++) slots[i].classList.toggle('on', i < strikes);
+  }
+
+  function revealSlot(i){
+    var btn = boardGrid.querySelector('[data-i="' + i + '"]');
+    if (!btn || btn.classList.contains('revealed')) return;
+    btn.classList.add('revealed');
+    btn.querySelector('.stext').textContent = currentBoard.answers[i];
+    btn.querySelector('.spts').textContent = POINTS[i];
+    teams[activeTeam].score += POINTS[i];
+    paintTeams();
+    beep(760, 0.25);
+  }
+
+  function loadBoard(b){
+    currentBoard = b;
+    strikes = 0;
+    paintStrikes();
+    askedText.textContent = b.asked;
+    boardGrid.innerHTML = '';
+    b.answers.forEach(function(ans, i){
+      var btn = document.createElement('button');
+      btn.className = 'slot';
+      btn.type = 'button';
+      btn.setAttribute('data-i', i);
+      var n = document.createElement('span');
+      n.className = 'snum'; n.textContent = (i + 1);
+      var t = document.createElement('span');
+      t.className = 'stext'; t.textContent = '\u2022 \u2022 \u2022 \u2022 \u2022 \u2022';
+      var pt = document.createElement('span');
+      pt.className = 'spts'; pt.textContent = POINTS[i];
+      btn.appendChild(n); btn.appendChild(t); btn.appendChild(pt);
+      btn.addEventListener('click', function(){ revealSlot(i); });
+      boardGrid.appendChild(btn);
+    });
+    paintTeams();
+    fshow('board');
+  }
+
+  BOARDS.forEach(function(b){
+    var btn = document.createElement('button');
+    btn.className = 'boardpick';
+    btn.type = 'button';
+    var tag = document.createElement('span');
+    tag.className = 'bptag'; tag.textContent = b.tag;
+    btn.appendChild(tag);
+    btn.appendChild(document.createTextNode(b.asked));
+    btn.addEventListener('click', function(){ loadBoard(b); });
+    boardList.appendChild(btn);
+  });
+
+  document.getElementById('strikeBtn').addEventListener('click', function(){
+    if (strikes < 3) strikes++;
+    paintStrikes();
+    strikeFlash.classList.remove('show');
+    void strikeFlash.offsetWidth;
+    strikeFlash.classList.add('show');
+    setTimeout(function(){ strikeFlash.classList.remove('show'); }, 750);
+    beep(180, 0.45);
+    activeTeam = (activeTeam + 1) % teams.length;
+    paintTeams();
+  });
+
+  document.getElementById('nextTeamBtn').addEventListener('click', function(){
+    activeTeam = (activeTeam + 1) % teams.length;
+    strikes = 0;
+    paintStrikes();
+    paintTeams();
+  });
+
+  document.getElementById('revealAllBtn').addEventListener('click', function(){
+    if (!currentBoard) return;
+    currentBoard.answers.forEach(function(ans, i){
+      var btn = boardGrid.querySelector('[data-i="' + i + '"]');
+      if (btn && !btn.classList.contains('revealed')) {
+        btn.classList.add('revealed');
+        btn.querySelector('.stext').textContent = ans;
+        btn.querySelector('.spts').textContent = POINTS[i];
+      }
+    });
+  });
+
+  document.getElementById('newBoardBtn').addEventListener('click', function(){
+    strikes = 0;
+    paintStrikes();
+    fshow('pick');
+  });
+
+  paintTeams();
+
   // ---------- mode switching ----------
   var modePicker = document.getElementById('modePicker');
   var docEl = document.querySelector('.doc');
@@ -869,12 +1164,17 @@
     var picking = (which === 'picker');
     modePicker.hidden = !picking;
     pictionaryApp.hidden = (which !== 'pictionary');
-    if (docEl) docEl.hidden = picking;
+    feudApp.hidden = (which !== 'feud');
+    if (docEl) docEl.hidden = (which !== 'pictionary');
     window.scrollTo(0, 0);
   }
 
   document.getElementById('modePictionary').addEventListener('click', function(){
     showMode('pictionary');
+  });
+  document.getElementById('modeFeud').addEventListener('click', function(){
+    fshow('pick');
+    showMode('feud');
   });
   [].slice.call(document.querySelectorAll('[data-backmode]')).forEach(function(b){
     b.addEventListener('click', function(){ showMode('picker'); });
