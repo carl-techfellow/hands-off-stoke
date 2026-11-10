@@ -8,28 +8,41 @@ HARNESS = r"""
   function chk(n,c){ log.push((c?'PASS ':'FAIL ')+n); }
   function setOut(v){ r2Output.value = v; r2Output.dispatchEvent(new Event('input')); }
   function r2team(i){ return r2TeamRow.querySelectorAll('.team')[i]; }
+  function picks(){ return boardList.querySelectorAll('.boardpick'); }
+  function slots(){ return boardGrid.querySelectorAll('.slot'); }
   try {
     document.getElementById('modeFeud').click();
-    boardList.querySelectorAll('.boardpick')[0].click();      // email board
-    boardGrid.querySelectorAll('.slot')[0].click();           // 30 into bank
-    document.getElementById('awardBtn').click();              // bank -> team1
-    chk('setup: team1 has 30 from round 1', teams[0].score === 30);
+    picks()[0].click(); picks()[1].click(); picks()[2].click(); picks()[3].click();
+    document.getElementById('startMatchBtn').click();
 
+    // round 1: team 1 wins the face-off, plays, takes 30
+    document.getElementById('fo1Btn').click();
+    document.getElementById('playBtn').click();
+    slots()[0].click();
+    document.getElementById('awardBtn').click();
+    chk('setup: team1 has 30 from round 1', teams[0].score === 30);
+    chk('setup: now on the story board', currentBoard.tag === 'Story');
+
+    // cut the match short and run the teaching round
+    document.getElementById('abandonBtn').click();
+    chk('abandon lands on fast money', fsFast.classList.contains('active'));
     document.getElementById('toRound2Btn').click();
-    chk('round2 active', fsRound2.classList.contains('active'));
-    chk('board auto-revealed on entry', boardGrid.querySelectorAll('.slot.revealed').length === 6);
+    chk('beat the board active', fsRound2.classList.contains('active'));
     chk('avoid chips listed', avoidList.querySelectorAll('.ac').length === 6);
-    chk('question carried over', document.getElementById('r2Asked').textContent.indexOf('professional email') > -1);
-    chk('two teams in round 2', r2TeamRow.querySelectorAll('.team').length === 2);
+    chk('question carried over', document.getElementById('r2Asked').textContent.indexOf('opening line of a story') > -1);
+    chk('two teams in the teaching round', r2TeamRow.querySelectorAll('.team').length === 2);
     chk('judge panel hidden initially', r2Judge.hidden === true);
     chk('badges clear on entry', r2TeamRow.querySelectorAll('.tbadge').length === 0);
+    chk('match scores carried in', r2TeamRow.textContent.indexOf('30') > -1);
+    chk('write timer armed at 90', document.getElementById('r2Timer').textContent === '90');
 
     // busted answer
     r2team(1).click();
     chk('judge panel opens', r2Judge.hidden === false);
-    setOut('Hi there! I hope this email finds you well, just checking in.');
+    chk('judged team highlighted', r2team(1).classList.contains('control'));
+    setOut('Once upon a time, a server went down on a Friday.');
     chk('scan flags busted', r2Scan.className.indexOf('busted') > -1);
-    chk('busted names the hit', r2Scan.textContent.indexOf('finds you well') > -1);
+    chk('busted names the hit', r2Scan.textContent.indexOf('Once upon a time') > -1);
 
     // clean answer
     setOut('Quick one before your coffee: the invoice numbers do not line up.');
@@ -65,18 +78,28 @@ HARNESS = r"""
     r2team(0).click();
     chk('team1 text remembered', r2Output.value === 'team one wrote this');
 
-    chk('round1 score intact', teams[0].score === 30);
+    chk('match score intact', teams[0].score === 30);
+
+    // empty paste clears the verdict rather than claiming clean
+    setOut('');
+    chk('empty paste shows no verdict', r2Scan.textContent === '');
 
     document.getElementById('finalScoreBtn').click();
     chk('winner line shown', winnerLine.hidden === false);
     chk('winner is team1 at 30', winnerLine.textContent.indexOf('30') > -1);
 
-    // back to board and re-enter clears round-2 state
-    document.getElementById('backToBoardBtn').click();
-    chk('back on board screen', fsBoard.classList.contains('active'));
+    // re-entry clears the teaching round but keeps match scores
     document.getElementById('toRound2Btn').click();
     chk('re-entry clears badges', r2TeamRow.querySelectorAll('.tbadge').length === 0);
     chk('re-entry clears pasted text', (teams[1].r2text || '') === '');
+    chk('re-entry hides the winner line', winnerLine.hidden === true);
+    chk('re-entry keeps match scores', teams[0].score === 30 && teams[1].score === 25);
+
+    // a new match wipes the teaching round too
+    document.getElementById('newMatchBtn').click();
+    chk('new match back to picker', fsPick.classList.contains('active'));
+    chk('new match zeroes scores', teams[0].score === 0 && teams[1].score === 0);
+    chk('new match clears r2 verdicts', !teams[0].r2 && !teams[1].r2);
 
     document.querySelectorAll('[data-backmode]')[0].click();
     document.getElementById('modePictionary').click();

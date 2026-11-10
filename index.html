@@ -290,6 +290,34 @@
   .fbtn.danger{background:var(--red);border-color:var(--red);color:#fff}
   .fbtn.go{background:var(--green);border-color:var(--green);color:#fff}
 
+  /* match setup + round chrome */
+  .roundchip{font-family:var(--mono);font-size:clamp(11px,1.8vw,13px);letter-spacing:.1em;
+       text-transform:uppercase;font-weight:700;color:#FF8FA8;margin-bottom:.9em;text-align:center}
+  .lineup{display:grid;grid-template-columns:repeat(4,1fr);gap:.5em;width:100%;
+       max-width:min(94vw,46em);margin:1.1em 0 1.2em}
+  .lslot{background:var(--ink-soft);border:2px dashed #3A3240;border-radius:10px;
+       padding:.6em .5em;text-align:center}
+  .lslot.filled{border-style:solid;border-color:var(--green)}
+  .lslot .lnum{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+       text-transform:uppercase;color:#FF8FA8;font-weight:700;margin-bottom:.2em}
+  .lslot .ltxt{font-size:13px;font-weight:700;color:var(--paper)}
+  .lslot:not(.filled) .ltxt{color:var(--grey-dark)}
+  .boardpick.used{border-color:var(--green);opacity:.55}
+
+  /* fast money */
+  .fastgrid{display:flex;flex-direction:column;gap:.7em;width:100%;
+       max-width:min(94vw,50em);margin-bottom:1.2em}
+  .fastrow{background:var(--ink-soft);border:2px solid #3A3240;border-radius:10px;padding:.7em .9em}
+  .fq{font-size:14.5px;font-weight:700;margin-bottom:.5em;text-align:left}
+  .fopts{display:flex;flex-wrap:wrap;gap:.35em}
+  .fopt{font-family:var(--sans);font-size:12.5px;font-weight:700;border-radius:999px;
+       padding:.3em .7em;cursor:pointer;background:var(--ink);color:var(--grey);
+       border:1.5px solid #3A3240}
+  .fopt:hover{border-color:var(--red);color:var(--paper)}
+  .fopt.picked{background:var(--green);border-color:var(--green);color:#fff}
+  .fopt.dupe{opacity:.3;cursor:not-allowed;text-decoration:line-through}
+  .fopt.miss{border-style:dashed}
+
   /* round 2 */
   .avoid{display:flex;flex-wrap:wrap;gap:.45em;justify-content:center;
        max-width:min(94vw,46em);margin-bottom:1.2em}
@@ -367,7 +395,7 @@
     <button class="mode" id="modeFeud" type="button">
       <span class="mi">📋</span>
       <span class="mname">Prompt Feud</span>
-      <span class="mmeta">Whole room · 2 teams · 15 min</span>
+      <span class="mmeta">Whole room · 2 teams · full match · 40 min</span>
       <span class="mdesc">We asked a computer the same question over and over. Guess its
       most common answers — then write a prompt that escapes them.</span>
     </button>
@@ -375,24 +403,35 @@
 </div>
 
 <div class="app" id="feudApp" hidden>
-  <div class="banner idle" id="feudBanner">Prompt Feud · host screen</div>
+  <div class="banner idle" id="feudBanner">Prompt Feud &middot; host screen</div>
   <div class="feud-wrap">
 
+    <!-- ---------- SETUP: build the lineup ---------- -->
     <section class="fscreen active" id="fsPick">
-      <div class="big-emoji">📋</div>
-      <h2 class="fhead">Pick a board</h2>
-      <p class="fsub">Each one is a question we put to an AI over and over. The board holds
-      its six most common answers — teams have to guess them.</p>
+      <div class="big-emoji">&#128203;</div>
+      <h2 class="fhead">Build the match</h2>
+      <p class="fsub">Pick <b>four boards</b> in the order you want to play them. Rounds 1
+      and 2 are single points, round 3 doubles, round 4 triples. First team to
+      <b>300</b> wins.</p>
       <div class="boardlist" id="boardList"></div>
+      <div class="lineup" id="lineup"></div>
+      <div class="fbtns">
+        <button class="fbtn" id="clearLineupBtn">Clear</button>
+        <button class="fbtn go" id="startMatchBtn" disabled>Start the match</button>
+      </div>
     </section>
 
+    <!-- ---------- THE ROUND ---------- -->
     <section class="fscreen" id="fsBoard">
-      <div class="asked" id="askedText">—</div>
+      <div class="roundchip" id="roundChip">Round 1</div>
+      <div class="asked" id="askedText">&mdash;</div>
+
+      <div class="steal" id="faceoffBar" hidden></div>
 
       <div class="strikes" id="strikeRow">
-        <span class="strikeslot">✕</span>
-        <span class="strikeslot">✕</span>
-        <span class="strikeslot">✕</span>
+        <span class="strikeslot">&#10005;</span>
+        <span class="strikeslot">&#10005;</span>
+        <span class="strikeslot">&#10005;</span>
       </div>
 
       <div class="board" id="boardGrid"></div>
@@ -400,25 +439,75 @@
       <div class="bank" id="bankChip">Bank <b>0</b></div>
       <div class="steal" id="stealBanner" hidden></div>
 
-      <p class="turnhint" id="turnHint">Tap a team to give them control</p>
+      <p class="turnhint" id="turnHint">&mdash;</p>
       <div class="teams" id="teamRow"></div>
 
-      <div class="fbtns">
-        <button class="fbtn danger" id="strikeBtn">✕ Strike</button>
+      <div class="fbtns" id="faceoffBtns" hidden>
+        <button class="fbtn go" id="fo1Btn">Team 1 won the face-off</button>
+        <button class="fbtn go" id="fo2Btn">Team 2 won the face-off</button>
+      </div>
+
+      <div class="fbtns" id="playpassBtns" hidden>
+        <button class="fbtn go" id="playBtn">Play it</button>
+        <button class="fbtn" id="passBtn">Pass to the other team</button>
+      </div>
+
+      <div class="fbtns" id="playBtns" hidden>
+        <button class="fbtn danger" id="strikeBtn">&#10005; Strike</button>
         <button class="fbtn danger" id="stealFailBtn" hidden>Steal failed</button>
-        <button class="fbtn go" id="awardBtn">Award bank</button>
-        <button class="fbtn" id="nextTeamBtn">⇄ Switch control</button>
+        <button class="fbtn go" id="awardBtn">Award bank &amp; end round</button>
         <button class="fbtn" id="revealAllBtn">Reveal all</button>
-        <button class="fbtn go" id="toRound2Btn">Round 2 &rarr;</button>
-        <button class="fbtn" id="newBoardBtn">Pick a new board</button>
+      </div>
+
+      <div class="fbtns" style="margin-top:.6em">
+        <button class="fbtn" id="abandonBtn">End match early</button>
       </div>
     </section>
 
+    <!-- ---------- SUDDEN DEATH ---------- -->
+    <section class="fscreen" id="fsSudden">
+      <div class="big-emoji">&#9889;</div>
+      <h2 class="fhead">Sudden death</h2>
+      <p class="fsub">Four rounds and nobody hit 300. One question, one buzzer:
+      <b>first player to give the number-one answer wins the match.</b></p>
+      <div class="asked" id="sdAsked">&mdash;</div>
+      <div class="teams" id="sdTeamRow"></div>
+      <div class="fbtns">
+        <button class="fbtn go" id="sd1Btn">Team 1 got it</button>
+        <button class="fbtn go" id="sd2Btn">Team 2 got it</button>
+      </div>
+    </section>
+
+    <!-- ---------- FAST MONEY ---------- -->
+    <section class="fscreen" id="fsFast">
+      <div class="big-emoji">&#128176;</div>
+      <h2 class="fhead">Fast Money</h2>
+      <p class="fsub"><b id="fastWinner">The winners</b> send up two players. Each answers
+      the same five questions &mdash; player one has 20 seconds, player two has 25 and
+      <b>cannot repeat</b> player one. <b>200 combined</b> takes it.</p>
+
+      <div class="fbtns" style="margin-bottom:1.2em">
+        <button class="fbtn danger" id="fast20Btn">&#9201; Player 1 &mdash; 20s</button>
+        <button class="fbtn danger" id="fast25Btn">&#9201; Player 2 &mdash; 25s</button>
+        <span class="bigtimer" id="fastTimer" style="font-size:clamp(34px,7vw,56px);margin:0 0 0 .4em">20</span>
+      </div>
+
+      <div class="fastgrid" id="fastGrid"></div>
+
+      <div class="bank" id="fastTotal">Combined <b>0</b> / 200</div>
+      <div class="winner" id="fastResult" hidden></div>
+      <div class="fbtns">
+        <button class="fbtn" id="fastPlayerToggle">Now entering: Player 1</button>
+        <button class="fbtn go" id="toRound2Btn">Last word &rarr; Beat the Board</button>
+      </div>
+    </section>
+
+    <!-- ---------- BEAT THE BOARD (the teaching round) ---------- -->
     <section class="fscreen" id="fsRound2">
-      <h2 class="fhead">Round 2 &mdash; Beat the Board</h2>
-      <p class="fsub">Now you have seen what the AI says by default. Write a prompt that
-      gets something <b>genuinely different</b> &mdash; and that still does the job.
-      Escaping by making it produce nonsense scores nothing.</p>
+      <h2 class="fhead">Beat the Board</h2>
+      <p class="fsub">Everyone has now seen what the AI says by default. Both teams write a
+      prompt that gets something <b>genuinely different</b> &mdash; and that still does the
+      job. Escaping by making it produce nonsense scores nothing.</p>
 
       <div class="asked" id="r2Asked">&mdash;</div>
       <div class="avoid" id="avoidList"></div>
@@ -444,15 +533,15 @@
 
       <div class="winner" id="winnerLine" hidden></div>
       <div class="fbtns">
-        <button class="fbtn" id="backToBoardBtn">&larr; Back to board</button>
         <button class="fbtn" id="finalScoreBtn">Show final scores</button>
-        <button class="fbtn go" id="r2NewBoardBtn">Pick a new board</button>
+        <button class="fbtn go" id="newMatchBtn">New match</button>
       </div>
     </section>
 
   </div>
-  <button class="backmode" data-backmode>← pick a different game</button>
+  <button class="backmode" data-backmode>&#8592; pick a different game</button>
 </div>
+
 
 <div class="app" id="pictionaryApp" hidden>
   <div class="banner idle" id="banner">A guessing game for two people</div>
@@ -1096,122 +1185,135 @@
                 "Grounds for Celebration", "Perk Up", "The Rusty Bean"] }
   ];
   var POINTS = [30, 25, 20, 15, 10, 5];
+  var MULTIPLIERS = [1, 1, 2, 3];
+  var TARGET = 300;
+
+  var FASTMONEY = [
+    { q: "Name a word an AI uses to start a list.",
+      a: ["First", "Additionally", "Moreover", "Furthermore", "In conclusion"] },
+    { q: "Name something an AI says it cannot do.",
+      a: ["Browse the internet", "Feel emotions", "Know current events",
+          "Access personal data", "Make phone calls"] },
+    { q: "Name an adjective an AI overuses.",
+      a: ["Robust", "Comprehensive", "Innovative", "Dynamic", "Holistic"] },
+    { q: "Name how an AI ends an essay.",
+      a: ["In conclusion", "To sum up", "Ultimately", "All in all", "In summary"] },
+    { q: "Name the fruit an AI names first.",
+      a: ["Apple", "Banana", "Orange", "Strawberry", "Mango"] }
+  ];
+  var FAST_TARGET = 200;
 
   var feudApp = document.getElementById('feudApp');
   var fsPick = document.getElementById('fsPick');
   var fsBoard = document.getElementById('fsBoard');
+  var fsSudden = document.getElementById('fsSudden');
+  var fsFast = document.getElementById('fsFast');
+  var fsRound2 = document.getElementById('fsRound2');
+
   var boardList = document.getElementById('boardList');
+  var lineupEl = document.getElementById('lineup');
   var boardGrid = document.getElementById('boardGrid');
   var askedText = document.getElementById('askedText');
   var teamRow = document.getElementById('teamRow');
   var strikeRow = document.getElementById('strikeRow');
   var turnHint = document.getElementById('turnHint');
   var strikeFlash = document.getElementById('strikeFlash');
+  var roundChip = document.getElementById('roundChip');
+  var faceoffBar = document.getElementById('faceoffBar');
+  var faceoffBtns = document.getElementById('faceoffBtns');
+  var playpassBtns = document.getElementById('playpassBtns');
+  var playBtns = document.getElementById('playBtns');
+  var bankChip = document.getElementById('bankChip');
+  var stealBanner = document.getElementById('stealBanner');
+  var stealFailBtn = document.getElementById('stealFailBtn');
+  var strikeBtn = document.getElementById('strikeBtn');
 
   var teams = [ { name: "Team 1", score: 0 }, { name: "Team 2", score: 0 } ];
-  // activeTeam == the team in control. bank holds this round's points until
-  // someone wins them - that's what makes the steal worth anything.
-  var activeTeam = 0, strikes = 0, currentBoard = null;
-  var bank = 0, stealMode = false;
-
-  var fsRound2 = document.getElementById('fsRound2');
+  var lineup = [];          // the four boards chosen up front
+  var roundIdx = 0;         // 0..3
+  var control = 0;          // team in control of the current board
+  var faceoffWinner = null; // who won the face-off, pending play/pass
+  var phase = 'faceoff';    // faceoff | playpass | play | steal | over
+  var bank = 0, strikes = 0, currentBoard = null;
   var R2_POINTS = 25;
+
+  function tname(i){ return teams[i].name || ('Team ' + (i + 1)); }
+  function multiplier(){ return MULTIPLIERS[Math.min(roundIdx, MULTIPLIERS.length - 1)]; }
 
   function fshow(which){
     fsPick.classList.toggle('active', which === 'pick');
     fsBoard.classList.toggle('active', which === 'board');
+    fsSudden.classList.toggle('active', which === 'sudden');
+    fsFast.classList.toggle('active', which === 'fast');
     fsRound2.classList.toggle('active', which === 'round2');
   }
 
-  function tname(i){ return teams[i].name || ('Team ' + (i + 1)); }
-
-  function updateHint(){
-    turnHint.textContent = stealMode
-      ? 'Steal attempt: ' + tname(1 - activeTeam)
-      : 'In control: ' + tname(activeTeam);
-  }
-
-  function paintBank(){
-    document.getElementById('bankChip').innerHTML = 'Bank <b>' + bank + '</b>';
-    var sb = document.getElementById('stealBanner');
-    sb.hidden = !stealMode;
-    if (stealMode) sb.textContent = 'Steal! ' + tname(1 - activeTeam) +
-      ' gets one guess for ' + bank + ' points';
-    document.getElementById('stealFailBtn').hidden = !stealMode;
-    document.getElementById('strikeBtn').hidden = stealMode;
-  }
-
-  function awardBank(to){
-    teams[to].score += bank;
-    bank = 0;
-    strikes = 0;
-    stealMode = false;
-    paintStrikes();
-    paintBank();
-    paintTeams();
-    beep(900, 0.4);
-  }
-
-  function paintTeams(){
-    teamRow.innerHTML = '';
-    teams.forEach(function(t, i){
+  // ---------------- setup: build the lineup ----------------
+  function paintLineup(){
+    lineupEl.innerHTML = '';
+    for (var i = 0; i < 4; i++) {
       var d = document.createElement('div');
-      d.className = 'team' + (i === activeTeam ? ' control' : '');
-      var inp = document.createElement('input');
-      inp.className = 'tname';
-      inp.value = t.name;
-      inp.setAttribute('aria-label', 'Team name');
-      inp.addEventListener('input', function(){ t.name = inp.value; updateHint(); });
-      inp.addEventListener('click', function(e){ e.stopPropagation(); });
-      var sc = document.createElement('div');
-      sc.className = 'tscore';
-      sc.textContent = t.score;
-      var ctl = document.createElement('span');
-      ctl.className = 'tctl';
-      ctl.textContent = (i === activeTeam ? 'in control' : '');
-      d.appendChild(inp);
-      d.appendChild(sc);
-      d.appendChild(ctl);
-      d.addEventListener('click', function(){
-        activeTeam = i; stealMode = false; paintBank(); paintTeams();
-      });
-      teamRow.appendChild(d);
-    });
-    updateHint();
-  }
-
-  function paintStrikes(){
-    var slots = strikeRow.querySelectorAll('.strikeslot');
-    for (var i = 0; i < slots.length; i++) slots[i].classList.toggle('on', i < strikes);
-  }
-
-  function revealSlot(i){
-    var btn = boardGrid.querySelector('[data-i="' + i + '"]');
-    if (!btn || btn.classList.contains('revealed')) return;
-    btn.classList.add('revealed');
-    btn.querySelector('.stext').textContent = currentBoard.answers[i];
-    btn.querySelector('.spts').textContent = POINTS[i];
-    bank += POINTS[i];
-    beep(760, 0.25);
-    if (stealMode) {
-      // a successful steal takes the whole bank
-      awardBank(1 - activeTeam);
-      return;
+      d.className = 'lslot' + (lineup[i] ? ' filled' : '');
+      var m = MULTIPLIERS[i];
+      d.innerHTML = '';
+      var lab = document.createElement('span');
+      lab.className = 'lnum';
+      lab.textContent = 'R' + (i + 1) + (m > 1 ? ' \u00d7' + m : '');
+      var txt = document.createElement('span');
+      txt.className = 'ltxt';
+      txt.textContent = lineup[i] ? lineup[i].tag : 'empty';
+      d.appendChild(lab); d.appendChild(txt);
+      lineupEl.appendChild(d);
     }
-    paintBank();
-    paintTeams();
+    document.getElementById('startMatchBtn').disabled = (lineup.length < 4);
+    [].slice.call(boardList.querySelectorAll('.boardpick')).forEach(function(b){
+      var used = lineup.indexOf(BOARDS[+b.getAttribute('data-b')]) > -1;
+      b.classList.toggle('used', used);
+    });
   }
 
-  function loadBoard(b){
-    currentBoard = b;
-    strikes = 0;
-    bank = 0;
-    stealMode = false;
-    paintStrikes();
-    paintBank();
-    askedText.textContent = b.asked;
+  BOARDS.forEach(function(b, bi){
+    var btn = document.createElement('button');
+    btn.className = 'boardpick';
+    btn.type = 'button';
+    btn.setAttribute('data-b', bi);
+    var tag = document.createElement('span');
+    tag.className = 'bptag'; tag.textContent = b.tag;
+    btn.appendChild(tag);
+    btn.appendChild(document.createTextNode(b.asked));
+    btn.addEventListener('click', function(){
+      var at = lineup.indexOf(b);
+      if (at > -1) lineup.splice(at, 1);
+      else if (lineup.length < 4) lineup.push(b);
+      paintLineup();
+    });
+    boardList.appendChild(btn);
+  });
+
+  document.getElementById('clearLineupBtn').addEventListener('click', function(){
+    lineup = []; paintLineup();
+  });
+
+  document.getElementById('startMatchBtn').addEventListener('click', function(){
+    teams[0].score = 0; teams[1].score = 0;
+    roundIdx = 0; control = 0;
+    startRound();
+  });
+
+  // ---------------- a round ----------------
+  function startRound(){
+    currentBoard = lineup[roundIdx];
+    bank = 0; strikes = 0;
+    faceoffWinner = null;
+    phase = 'faceoff';
+    buildBoard();
+    paintAll();
+    fshow('board');
+  }
+
+  function buildBoard(){
     boardGrid.innerHTML = '';
-    b.answers.forEach(function(ans, i){
+    currentBoard.answers.forEach(function(ans, i){
       var btn = document.createElement('button');
       btn.className = 'slot';
       btn.type = 'button';
@@ -1221,57 +1323,114 @@
       var t = document.createElement('span');
       t.className = 'stext'; t.textContent = '\u2022 \u2022 \u2022 \u2022 \u2022 \u2022';
       var pt = document.createElement('span');
-      pt.className = 'spts'; pt.textContent = POINTS[i];
+      pt.className = 'spts'; pt.textContent = POINTS[i] * multiplier();
       btn.appendChild(n); btn.appendChild(t); btn.appendChild(pt);
       btn.addEventListener('click', function(){ revealSlot(i); });
       boardGrid.appendChild(btn);
     });
-    paintTeams();
-    fshow('board');
+    askedText.textContent = currentBoard.asked;
   }
 
-  BOARDS.forEach(function(b){
-    var btn = document.createElement('button');
-    btn.className = 'boardpick';
-    btn.type = 'button';
-    var tag = document.createElement('span');
-    tag.className = 'bptag'; tag.textContent = b.tag;
-    btn.appendChild(tag);
-    btn.appendChild(document.createTextNode(b.asked));
-    btn.addEventListener('click', function(){ loadBoard(b); });
-    boardList.appendChild(btn);
+  function paintTeams(){
+    teamRow.innerHTML = '';
+    teams.forEach(function(t, i){
+      var d = document.createElement('div');
+      d.className = 'team' + (i === control && phase !== 'faceoff' ? ' control' : '');
+      var inp = document.createElement('input');
+      inp.className = 'tname';
+      inp.value = t.name;
+      inp.setAttribute('aria-label', 'Team name');
+      inp.addEventListener('input', function(){ t.name = inp.value; paintHint(); });
+      inp.addEventListener('click', function(e){ e.stopPropagation(); });
+      var sc = document.createElement('div');
+      sc.className = 'tscore';
+      sc.textContent = t.score;
+      var ctl = document.createElement('span');
+      ctl.className = 'tctl';
+      ctl.textContent = (i === control && phase !== 'faceoff') ? 'in control' : '';
+      d.appendChild(inp); d.appendChild(sc); d.appendChild(ctl);
+      teamRow.appendChild(d);
+    });
+  }
+
+  function paintStrikes(){
+    var slots = strikeRow.querySelectorAll('.strikeslot');
+    for (var i = 0; i < slots.length; i++) slots[i].classList.toggle('on', i < strikes);
+  }
+
+  function paintHint(){
+    if (phase === 'faceoff') turnHint.textContent = 'Face-off - first buzz wins control';
+    else if (phase === 'playpass') turnHint.textContent = tname(faceoffWinner) + ': play or pass?';
+    else if (phase === 'steal') turnHint.textContent = 'Steal attempt: ' + tname(1 - control);
+    else turnHint.textContent = 'In control: ' + tname(control);
+  }
+
+  function paintAll(){
+    var m = multiplier();
+    roundChip.textContent = 'Round ' + (roundIdx + 1) + ' of 4' +
+      (m > 1 ? ' \u00b7 ' + m + '\u00d7 points' : ' \u00b7 single points') +
+      ' \u00b7 first to ' + TARGET;
+    bankChip.innerHTML = 'Bank <b>' + bank + '</b>';
+    faceoffBar.hidden = (phase !== 'faceoff');
+    if (phase === 'faceoff') faceoffBar.textContent = 'Face-off! Reveal what they said, then award control.';
+    faceoffBtns.hidden = (phase !== 'faceoff');
+    playpassBtns.hidden = (phase !== 'playpass');
+    playBtns.hidden = !(phase === 'play' || phase === 'steal');
+    stealBanner.hidden = (phase !== 'steal');
+    if (phase === 'steal') stealBanner.textContent = 'Steal! ' + tname(1 - control) +
+      ' gets one guess for ' + bank + ' points';
+    stealFailBtn.hidden = (phase !== 'steal');
+    strikeBtn.hidden = (phase === 'steal');
+    paintStrikes();
+    paintTeams();
+    paintHint();
+  }
+
+  function revealSlot(i){
+    var btn = boardGrid.querySelector('[data-i="' + i + '"]');
+    if (!btn || btn.classList.contains('revealed')) return;
+    btn.classList.add('revealed');
+    btn.querySelector('.stext').textContent = currentBoard.answers[i];
+    bank += POINTS[i] * multiplier();
+    beep(760, 0.25);
+    if (phase === 'steal') { awardBank(1 - control); return; }
+    paintAll();
+  }
+
+  document.getElementById('fo1Btn').addEventListener('click', function(){ wonFaceoff(0); });
+  document.getElementById('fo2Btn').addEventListener('click', function(){ wonFaceoff(1); });
+  function wonFaceoff(i){
+    faceoffWinner = i;
+    phase = 'playpass';
+    paintAll();
+  }
+
+  document.getElementById('playBtn').addEventListener('click', function(){
+    control = faceoffWinner; phase = 'play'; paintAll();
+  });
+  document.getElementById('passBtn').addEventListener('click', function(){
+    control = 1 - faceoffWinner; phase = 'play'; paintAll();
   });
 
-  document.getElementById('strikeBtn').addEventListener('click', function(){
-    if (stealMode) return;
+  strikeBtn.addEventListener('click', function(){
+    if (phase !== 'play') return;
     if (strikes < 3) strikes++;
-    paintStrikes();
     strikeFlash.classList.remove('show');
     void strikeFlash.offsetWidth;
     strikeFlash.classList.add('show');
     setTimeout(function(){ strikeFlash.classList.remove('show'); }, 750);
     beep(180, 0.45);
-    if (strikes >= 3) stealMode = true;
-    paintBank();
-    paintTeams();
+    if (strikes >= 3) phase = 'steal';
+    paintAll();
   });
 
-  document.getElementById('stealFailBtn').addEventListener('click', function(){
-    if (!stealMode) return;
-    awardBank(activeTeam);   // steal missed, control keeps the bank
+  stealFailBtn.addEventListener('click', function(){
+    if (phase !== 'steal') return;
+    awardBank(control);
   });
 
   document.getElementById('awardBtn').addEventListener('click', function(){
-    awardBank(stealMode ? activeTeam : activeTeam);
-  });
-
-  document.getElementById('nextTeamBtn').addEventListener('click', function(){
-    activeTeam = 1 - activeTeam;
-    strikes = 0;
-    stealMode = false;
-    paintStrikes();
-    paintBank();
-    paintTeams();
+    awardBank(control);
   });
 
   document.getElementById('revealAllBtn').addEventListener('click', function(){
@@ -1281,18 +1440,158 @@
       if (btn && !btn.classList.contains('revealed')) {
         btn.classList.add('revealed');
         btn.querySelector('.stext').textContent = ans;
-        btn.querySelector('.spts').textContent = POINTS[i];
       }
     });
   });
 
-  document.getElementById('newBoardBtn').addEventListener('click', function(){
-    strikes = 0; bank = 0; stealMode = false;
-    paintStrikes(); paintBank();
-    fshow('pick');
+  function awardBank(to){
+    teams[to].score += bank;
+    bank = 0; strikes = 0;
+    beep(900, 0.4);
+    endRound();
+  }
+
+  function endRound(){
+    if (teams[0].score >= TARGET || teams[1].score >= TARGET) return goFastMoney();
+    roundIdx++;
+    if (roundIdx >= lineup.length) {
+      if (teams[0].score === teams[1].score || (teams[0].score < TARGET && teams[1].score < TARGET)) {
+        return goSudden();
+      }
+      return goFastMoney();
+    }
+    startRound();
+  }
+
+  document.getElementById('abandonBtn').addEventListener('click', function(){ goFastMoney(); });
+
+  // ---------------- sudden death ----------------
+  var sdBoard = null;
+  function goSudden(){
+    sdBoard = null;
+    for (var i = 0; i < BOARDS.length; i++) {
+      if (lineup.indexOf(BOARDS[i]) === -1) { sdBoard = BOARDS[i]; break; }
+    }
+    if (!sdBoard) sdBoard = BOARDS[0];
+    document.getElementById('sdAsked').textContent = sdBoard.asked +
+      '  (number-one answer: "' + sdBoard.answers[0] + '")';
+    var row = document.getElementById('sdTeamRow');
+    row.innerHTML = '';
+    teams.forEach(function(t, i){
+      var d = document.createElement('div');
+      d.className = 'team';
+      var nm = document.createElement('div');
+      nm.className = 'tname'; nm.textContent = tname(i);
+      var sc = document.createElement('div');
+      sc.className = 'tscore'; sc.textContent = t.score;
+      d.appendChild(nm); d.appendChild(sc);
+      row.appendChild(d);
+    });
+    phase = 'over';
+    fshow('sudden');
+  }
+  document.getElementById('sd1Btn').addEventListener('click', function(){ teams[0].score += TARGET; goFastMoney(); });
+  document.getElementById('sd2Btn').addEventListener('click', function(){ teams[1].score += TARGET; goFastMoney(); });
+
+  // ---------------- fast money ----------------
+  var fastPlayer = 0;                 // 0 or 1
+  var fastPicks = [[], []];           // index of chosen answer per question, -1 = miss
+  var fastInterval = null;
+
+  function fastWinnerIdx(){ return teams[1].score > teams[0].score ? 1 : 0; }
+
+  function fastScore(pi){
+    var tot = 0;
+    fastPicks[pi].forEach(function(ai){ if (ai > -1) tot += POINTS[ai]; });
+    return tot;
+  }
+
+  function paintFast(){
+    var grid = document.getElementById('fastGrid');
+    grid.innerHTML = '';
+    FASTMONEY.forEach(function(item, qi){
+      var row = document.createElement('div');
+      row.className = 'fastrow';
+      var q = document.createElement('div');
+      q.className = 'fq';
+      q.textContent = (qi + 1) + '. ' + item.q;
+      row.appendChild(q);
+      var opts = document.createElement('div');
+      opts.className = 'fopts';
+      item.a.forEach(function(ans, ai){
+        var b = document.createElement('button');
+        b.className = 'fopt';
+        var takenByOther = (fastPicks[1 - fastPlayer][qi] === ai);
+        var mine = (fastPicks[fastPlayer][qi] === ai);
+        if (mine) b.classList.add('picked');
+        if (takenByOther && fastPlayer === 1) b.classList.add('dupe');
+        b.type = 'button';
+        b.textContent = ans + ' \u00b7 ' + POINTS[ai];
+        b.addEventListener('click', function(){
+          if (fastPlayer === 1 && fastPicks[0][qi] === ai) return;  // no repeats
+          fastPicks[fastPlayer][qi] = (fastPicks[fastPlayer][qi] === ai ? undefined : ai);
+          paintFast();
+        });
+        opts.appendChild(b);
+      });
+      var miss = document.createElement('button');
+      miss.className = 'fopt miss' + (fastPicks[fastPlayer][qi] === -1 ? ' picked' : '');
+      miss.type = 'button';
+      miss.textContent = 'no match';
+      miss.addEventListener('click', function(){
+        fastPicks[fastPlayer][qi] = (fastPicks[fastPlayer][qi] === -1 ? undefined : -1);
+        paintFast();
+      });
+      opts.appendChild(miss);
+      row.appendChild(opts);
+      grid.appendChild(row);
+    });
+    var total = fastScore(0) + fastScore(1);
+    document.getElementById('fastTotal').innerHTML =
+      'P1 ' + fastScore(0) + ' + P2 ' + fastScore(1) + ' = Combined <b>' + total + '</b> / ' + FAST_TARGET;
+    document.getElementById('fastPlayerToggle').textContent = 'Now entering: Player ' + (fastPlayer + 1);
+    var res = document.getElementById('fastResult');
+    if (total >= FAST_TARGET) { res.hidden = false; res.textContent = 'Fast Money won - ' + total + ' points!'; }
+    else res.hidden = true;
+  }
+
+  function goFastMoney(){
+    phase = 'over';
+    fastPlayer = 0;
+    fastPicks = [[], []];
+    document.getElementById('fastWinner').textContent = tname(fastWinnerIdx()) +
+      ' (' + teams[fastWinnerIdx()].score + ')';
+    clearInterval(fastInterval); fastInterval = null;
+    document.getElementById('fastTimer').textContent = '20';
+    paintFast();
+    fshow('fast');
+  }
+
+  document.getElementById('fastPlayerToggle').addEventListener('click', function(){
+    fastPlayer = 1 - fastPlayer;
+    paintFast();
   });
 
-  // ---------------- round 2: beat the board ----------------
+  function runFastTimer(sec){
+    clearInterval(fastInterval);
+    var t = sec, el = document.getElementById('fastTimer');
+    el.textContent = t;
+    el.classList.remove('low');
+    fastInterval = setInterval(function(){
+      t--;
+      el.textContent = t;
+      if (t <= 5) el.classList.add('low');
+      if (t <= 0) { clearInterval(fastInterval); fastInterval = null; beep(660, 0.5); }
+    }, 1000);
+  }
+  document.getElementById('fast20Btn').addEventListener('click', function(){
+    fastPlayer = 0; paintFast(); runFastTimer(20);
+  });
+  document.getElementById('fast25Btn').addEventListener('click', function(){
+    fastPlayer = 1; paintFast(); runFastTimer(25);
+  });
+
+  // ---------------- beat the board (the teaching round) ----------------
   var r2TeamRow = document.getElementById('r2TeamRow');
   var r2Judge = document.getElementById('r2Judge');
   var r2Who = document.getElementById('r2Who');
@@ -1321,15 +1620,12 @@
     r2TeamRow.innerHTML = '';
     teams.forEach(function(t, i){
       var d = document.createElement('div');
-      d.className = 'team' + (judging === i ? ' active' : '');
+      d.className = 'team' + (judging === i ? ' control' : '');
       var nm = document.createElement('div');
-      nm.className = 'tname';
-      nm.textContent = t.name || ('Team ' + (i + 1));
+      nm.className = 'tname'; nm.textContent = tname(i);
       var sc = document.createElement('div');
-      sc.className = 'tscore';
-      sc.textContent = t.score;
-      d.appendChild(nm);
-      d.appendChild(sc);
+      sc.className = 'tscore'; sc.textContent = t.score;
+      d.appendChild(nm); d.appendChild(sc);
       if (t.r2 === 'ok' || t.r2 === 'no') {
         var b = document.createElement('span');
         b.className = 'tbadge ' + (t.r2 === 'ok' ? 'ok' : 'no');
@@ -1343,7 +1639,7 @@
 
   function openJudge(i){
     judging = i;
-    r2Who.textContent = 'Paste ' + (teams[i].name || 'Team ' + (i + 1)) + "'s output";
+    r2Who.textContent = 'Paste ' + tname(i) + "'s output";
     r2Output.value = teams[i].r2text || '';
     r2Judge.hidden = false;
     runScan();
@@ -1377,7 +1673,6 @@
     r2Judge.hidden = true;
     judging = null;
     paintR2Teams();
-    paintTeams();
     beep(ok ? 820 : 220, 0.3);
   }
 
@@ -1395,8 +1690,7 @@
       r2TimerEl.textContent = t;
       if (t <= 10) r2TimerEl.classList.add('low');
       if (t <= 0) {
-        clearInterval(r2Interval);
-        r2Interval = null;
+        clearInterval(r2Interval); r2Interval = null;
         r2TimerEl.classList.add('flash');
         r2TimerBtn.disabled = false;
         beep(660, 0.5);
@@ -1404,17 +1698,13 @@
     }, 1000);
   });
 
-  function enterRound2(){
-    if (!currentBoard) return;
-    stealMode = false;
-    paintBank();
-    document.getElementById('revealAllBtn').click();
+  document.getElementById('toRound2Btn').addEventListener('click', function(){
+    if (!currentBoard) currentBoard = lineup[0] || BOARDS[0];
     document.getElementById('r2Asked').textContent = currentBoard.asked;
     avoidList.innerHTML = '';
     currentBoard.answers.forEach(function(a){
       var c = document.createElement('span');
-      c.className = 'ac';
-      c.textContent = a;
+      c.className = 'ac'; c.textContent = a;
       avoidList.appendChild(c);
     });
     teams.forEach(function(t){ t.r2 = null; t.r2text = ''; });
@@ -1427,27 +1717,29 @@
     r2TimerBtn.disabled = false;
     paintR2Teams();
     fshow('round2');
-  }
-
-  document.getElementById('toRound2Btn').addEventListener('click', enterRound2);
-  document.getElementById('backToBoardBtn').addEventListener('click', function(){ fshow('board'); });
-  document.getElementById('r2NewBoardBtn').addEventListener('click', function(){
-    strikes = 0; bank = 0; stealMode = false;
-    paintStrikes(); paintBank(); fshow('pick');
   });
 
   document.getElementById('finalScoreBtn').addEventListener('click', function(){
-    var best = -1, names = [];
-    teams.forEach(function(t){ if (t.score > best) best = t.score; });
-    teams.forEach(function(t, i){ if (t.score === best) names.push(t.name || 'Team ' + (i + 1)); });
+    var best = Math.max(teams[0].score, teams[1].score);
+    var names = [];
+    teams.forEach(function(t, i){ if (t.score === best) names.push(tname(i)); });
     winnerLine.hidden = false;
     winnerLine.textContent = (names.length > 1 ? 'Tied at ' : 'Winner: ') +
       names.join(' & ') + ' - ' + best + ' points';
     beep(900, 0.5);
   });
 
+  document.getElementById('newMatchBtn').addEventListener('click', function(){
+    lineup = []; roundIdx = 0; bank = 0; strikes = 0;
+    teams[0].score = 0; teams[1].score = 0;
+    teams.forEach(function(t){ t.r2 = null; t.r2text = ''; });
+    paintLineup();
+    fshow('pick');
+  });
+
+  paintLineup();
   paintTeams();
-  paintBank();
+
 
   // ---------- mode switching ----------
   var modePicker = document.getElementById('modePicker');
