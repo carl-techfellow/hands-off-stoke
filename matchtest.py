@@ -29,7 +29,15 @@ HARNESS = r"""
     chk('feud rendered', disp(feudApp) !== 'none');
     chk('pictionary not rendered', disp(pictionaryApp) === 'none');
     chk('lands on lineup builder', fsPick.classList.contains('active'));
-    chk('six boards offered', picks().length === 6);
+    chk('every category offered in the swap list', picks().length === BOARDS.length);
+    chk('deck is at least twelve categories', BOARDS.length >= 12);
+    chk('deck count shown in the copy',
+        document.getElementById('deckCount').textContent === String(BOARDS.length));
+    chk('every board has six answers',
+        BOARDS.every(function(b){ return b.answers.length === 6; }));
+    chk('every board has a tag and a question',
+        BOARDS.every(function(b){ return !!b.tag && b.asked.length > 20; }));
+    chk('no duplicate tags', new Set(BOARDS.map(function(b){ return b.tag; })).size === BOARDS.length);
     chk('four lineup slots shown', lineupEl.querySelectorAll('.lslot').length === 4);
 
     // ---- categories are drawn automatically ----
@@ -186,6 +194,11 @@ HARNESS = r"""
     chk('fast money names the winner',
         document.getElementById('fastWinner').textContent.indexOf('Team 2') > -1);
     chk('five fast money questions', document.getElementById('fastGrid').querySelectorAll('.fastrow').length === 5);
+    chk('fast money drawn from a bigger pool', FASTMONEY.length > 5);
+    chk('fast money draw has no repeats',
+        new Set(fastSet.map(function(f){ return f.q; })).size === 5);
+    chk('every fast money question has five answers',
+        FASTMONEY.every(function(f){ return f.a.length === 5; }));
     chk('entering player 1 first', fastPlayer === 0);
     chk('combined starts at zero', fastScore(0) + fastScore(1) === 0);
     chk('target shown', document.getElementById('fastTotal').textContent.indexOf('200') > -1);

@@ -23,7 +23,7 @@ HARNESS = r"""
     slots()[0].click();
     document.getElementById('awardBtn').click();
     chk('setup: team1 has 30 from round 1', teams[0].score === 30);
-    chk('setup: now on the story board', currentBoard.tag === 'Story');
+    chk('setup: now on the second drawn board', currentBoard.tag === BOARDS[1].tag);
 
     // cut the match short and run the teaching round
     document.getElementById('abandonBtn').click();
@@ -31,7 +31,8 @@ HARNESS = r"""
     document.getElementById('toRound2Btn').click();
     chk('beat the board active', fsRound2.classList.contains('active'));
     chk('avoid chips listed', avoidList.querySelectorAll('.ac').length === 6);
-    chk('question carried over', document.getElementById('r2Asked').textContent.indexOf('opening line of a story') > -1);
+    chk('question carried over',
+        document.getElementById('r2Asked').textContent === BOARDS[1].asked);
     chk('two teams in the teaching round', r2TeamRow.querySelectorAll('.team').length === 2);
     chk('judge panel hidden initially', r2Judge.hidden === true);
     chk('badges clear on entry', r2TeamRow.querySelectorAll('.tbadge').length === 0);
@@ -42,12 +43,13 @@ HARNESS = r"""
     r2team(1).click();
     chk('judge panel opens', r2Judge.hidden === false);
     chk('judged team highlighted', r2team(1).classList.contains('control'));
-    setOut('Once upon a time, a server went down on a Friday.');
+    var topAnswer = BOARDS[1].answers[0];
+    setOut('Draft one: ' + topAnswer + ' the rest of the sentence.');
     chk('scan flags busted', r2Scan.className.indexOf('busted') > -1);
-    chk('busted names the hit', r2Scan.textContent.indexOf('Once upon a time') > -1);
+    chk('busted names the hit', r2Scan.textContent.indexOf(topAnswer) > -1);
 
-    // clean answer
-    setOut('Quick one before your coffee: the invoice numbers do not line up.');
+    // clean answer - deliberately unlike anything on any board
+    setOut('zebra kettle forty two purple bicycle coffee');
     chk('scan flags clean', r2Scan.className.indexOf('clean') > -1);
 
     document.getElementById('r2Good').click();
@@ -76,7 +78,7 @@ HARNESS = r"""
     chk('other team starts empty', r2Output.value === '');
     setOut('team one wrote this');
     r2team(1).click();
-    chk('team2 text remembered', r2Output.value.indexOf('coffee') > -1);
+    chk('team2 text remembered', r2Output.value.indexOf('zebra kettle') > -1);
     r2team(0).click();
     chk('team1 text remembered', r2Output.value === 'team one wrote this');
 

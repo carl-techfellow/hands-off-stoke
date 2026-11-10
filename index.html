@@ -418,9 +418,10 @@
     <section class="fscreen active" id="fsPick">
       <div class="big-emoji">&#128203;</div>
       <h2 class="fhead">Tonight&rsquo;s match</h2>
-      <p class="fsub">Four categories, drawn at random and locked to their rounds.
-      Rounds 1 and 2 are single points, round 3 doubles, round 4 triples. First team to
-      <b>300</b> wins.</p>
+      <p class="fsub">Four of <b id="deckCount">12</b> categories, drawn at random and
+      locked to their rounds. Every one is a job someone will actually hand you &mdash;
+      cover letters, standups, commit messages, test cases, slide titles. Rounds 1 and 2
+      are single points, round 3 doubles, round 4 triples. First team to <b>300</b> wins.</p>
       <div class="lineup" id="lineup"></div>
       <p class="lhint" id="lineupHint">Reshuffle for a different draw, or tap a category
       below to swap one out.</p>
@@ -1179,43 +1180,90 @@
   // Answers are authored from well-known model defaults, not measured runs - so
   // points are rank-based (30/25/20/15/10/5) rather than invented survey counts.
   var BOARDS = [
-    { tag: "Email", asked: "We asked an AI to write the first line of a professional email.",
-      answers: ["I hope this email finds you well", "I hope you are doing well",
-                "I hope this message finds you well", "Thank you for reaching out",
-                "I wanted to follow up on", "I hope you are having a great week"] },
-    { tag: "Story", asked: "We asked an AI to write the opening line of a story.",
-      answers: ["Once upon a time", "It was a dark and stormy night",
-                "The rain fell steadily", "In a small village",
-                "She had always known", "Little did they know"] },
-    { tag: "Marketing", asked: "We asked an AI for marketing copy. Which words did it reach for?",
-      answers: ["Elevate", "Unlock", "Seamless", "Empower", "Transform", "Cutting-edge"] },
-    { tag: "Description", asked: "We asked an AI to describe a sunset.",
-      answers: ["Painted the sky", "Hues of orange and pink", "Golden glow",
-                "Breathtaking", "The horizon", "Fiery"] },
-    { tag: "Metaphor", asked: "We asked an AI for a metaphor about teamwork.",
-      answers: ["A well-oiled machine", "Rowing in the same direction",
-                "Greater than the sum of its parts", "A symphony playing together",
-                "Puzzle pieces fitting together", "Only as strong as the weakest link"] },
-    { tag: "Naming", asked: "We asked an AI to name a fictional coffee shop.",
-      answers: ["The Daily Grind", "Bean There", "Brew Haven",
-                "Grounds for Celebration", "Perk Up", "The Rusty Bean"] }
+    { tag: "Cover letter",
+      asked: "Ask any chatbot to write a cover letter. Name the opening line it reaches for.",
+      answers: ["I am writing to express my interest in",
+                "I am excited to apply for",
+                "I am thrilled to apply for",
+                "With a strong background in",
+                "As a passionate professional",
+                "I came across your job posting"] },
+    { tag: "Resume bullet",
+      asked: "Ask any chatbot to write a resume bullet. Name the verb it starts with.",
+      answers: ["Spearheaded", "Leveraged", "Streamlined",
+                "Collaborated with cross-functional teams", "Implemented", "Utilized"] },
+    { tag: "Status update",
+      asked: "Ask any chatbot to write your standup update. Name a phrase it drops in.",
+      answers: ["Circling back", "Just wanted to touch base", "On track",
+                "Currently blocked on", "Moving forward", "Please let me know if"] },
+    { tag: "Commit message",
+      asked: "Ask any chatbot to write a commit message. Name what it writes.",
+      answers: ["Update README", "Fix bug", "Initial commit",
+                "Refactor code", "Add new feature", "Minor changes"] },
+    { tag: "Variable names",
+      asked: "Ask any chatbot for code holding a list of users. Name the variable it picks.",
+      answers: ["users", "userList", "data", "result", "items", "userData"] },
+    { tag: "Test cases",
+      asked: "Ask any chatbot to write test cases for a login form. Name a case it lists.",
+      answers: ["Valid username and password", "Invalid password", "Empty fields",
+                "Password reset", "SQL injection attempt", "Lockout after failed attempts"] },
+    { tag: "User story",
+      asked: "Ask any chatbot for a Jira user story. Name the words it uses.",
+      answers: ["As a user, I want", "So that I can", "Acceptance criteria",
+                "Given, when, then", "As an admin", "Definition of done"] },
+    { tag: "Slide titles",
+      asked: "Ask any chatbot to title the slides of a pitch deck. Name a title it gives you.",
+      answers: ["Key Takeaways", "The Problem", "Our Solution",
+                "Next Steps", "Market Opportunity", "Thank You"] },
+    { tag: "App ideas",
+      asked: "Ask any chatbot for a beginner web app idea. Name the app it suggests.",
+      answers: ["To-do list", "Weather app", "Recipe finder",
+                "Budget tracker", "Personal blog", "Quiz app"] },
+    { tag: "Hedging",
+      asked: "Ask any chatbot something it is unsure about. Name how it hedges.",
+      answers: ["It depends", "There are several factors to consider",
+                "I would recommend consulting a professional",
+                "I do not have access to real-time information",
+                "As an AI", "Generally speaking"] },
+    { tag: "Sign-offs",
+      asked: "Ask any chatbot for anything at all. Name the line it ends on.",
+      answers: ["Let me know if you have any questions", "I hope this helps",
+                "Feel free to reach out", "Would you like me to",
+                "Happy to help", "Good luck"] },
+    { tag: "Formatting",
+      asked: "Ask any chatbot a plain question. Name a formatting habit in the answer.",
+      answers: ["Bullet points", "Bold headers", "Numbered list",
+                "Em dashes", "Here is a breakdown", "A closing summary"] }
   ];
   var POINTS = [30, 25, 20, 15, 10, 5];
   var MULTIPLIERS = [1, 1, 2, 3];
   var TARGET = 300;
 
+  // Fast Money draws five of these per match, same as the round categories.
   var FASTMONEY = [
-    { q: "Name a word an AI uses to start a list.",
-      a: ["First", "Additionally", "Moreover", "Furthermore", "In conclusion"] },
-    { q: "Name something an AI says it cannot do.",
-      a: ["Browse the internet", "Feel emotions", "Know current events",
-          "Access personal data", "Make phone calls"] },
-    { q: "Name an adjective an AI overuses.",
-      a: ["Robust", "Comprehensive", "Innovative", "Dynamic", "Holistic"] },
-    { q: "Name how an AI ends an essay.",
-      a: ["In conclusion", "To sum up", "Ultimately", "All in all", "In summary"] },
-    { q: "Name the fruit an AI names first.",
-      a: ["Apple", "Banana", "Orange", "Strawberry", "Mango"] }
+    { q: "Name a word a chatbot uses to start a list.",
+      a: ["First", "Additionally", "Moreover", "Furthermore", "To begin"] },
+    { q: "Name something a chatbot says it cannot do.",
+      a: ["Access real-time information", "Feel emotions", "Browse the web",
+          "Remember past conversations", "Make phone calls"] },
+    { q: "Name an adjective chatbots overuse.",
+      a: ["Robust", "Comprehensive", "Innovative", "Seamless", "Dynamic"] },
+    { q: "Name how a chatbot ends an essay.",
+      a: ["In conclusion", "To sum up", "Ultimately", "In summary", "All in all"] },
+    { q: "Name a punctuation mark chatbots overuse.",
+      a: ["Em dash", "Colon", "Semicolon", "Exclamation point", "Parentheses"] },
+    { q: "Name the word a chatbot uses instead of \"use\".",
+      a: ["Utilize", "Leverage", "Employ", "Harness", "Apply"] },
+    { q: "Name the job title a chatbot invents for a fake example.",
+      a: ["Software Engineer", "Project Manager", "Marketing Manager",
+          "Data Analyst", "Teacher"] },
+    { q: "Name the fake company a chatbot puts in an example.",
+      a: ["Acme Corp", "TechCorp", "XYZ Company", "Globex", "Innovate Inc"] },
+    { q: "Name the placeholder person a chatbot writes about.",
+      a: ["John Doe", "Jane Doe", "Alice", "Bob", "Sarah"] },
+    { q: "Name how a chatbot opens a reply.",
+      a: ["Great question", "Certainly", "Absolutely", "Of course",
+          "I would be happy to help"] }
   ];
   var FAST_TARGET = 200;
 
@@ -1532,6 +1580,16 @@
   var fastPlayer = 0;                 // 0 or 1
   var fastPicks = [[], []];           // index of chosen answer per question, -1 = miss
   var fastInterval = null;
+  var fastSet = [];                   // the five questions drawn for this match
+
+  function drawFastSet(){
+    var pool = FASTMONEY.slice();
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+    }
+    fastSet = pool.slice(0, 5);
+  }
 
   function fastWinnerIdx(){ return teams[1].score > teams[0].score ? 1 : 0; }
 
@@ -1544,7 +1602,7 @@
   function paintFast(){
     var grid = document.getElementById('fastGrid');
     grid.innerHTML = '';
-    FASTMONEY.forEach(function(item, qi){
+    fastSet.forEach(function(item, qi){
       var row = document.createElement('div');
       row.className = 'fastrow';
       var q = document.createElement('div');
@@ -1594,6 +1652,7 @@
     phase = 'over';
     fastPlayer = 0;
     fastPicks = [[], []];
+    drawFastSet();
     document.getElementById('fastWinner').textContent = tname(fastWinnerIdx()) +
       ' (' + teams[fastWinnerIdx()].score + ')';
     clearInterval(fastInterval); fastInterval = null;
@@ -1642,11 +1701,13 @@
 
   // advisory only - the host still makes the call
   function scanOutput(text){
-    var hay = norm(text), hits = [];
-    if (!currentBoard || !hay) return hits;
+    var inner = norm(text), hits = [];
+    if (!currentBoard || !inner) return hits;
+    // pad both sides so short answers like "data" do not fire on "database"
+    var hay = ' ' + inner + ' ';
     currentBoard.answers.forEach(function(a){
-      var needle = norm(a);
-      if (needle.length > 3 && hay.indexOf(needle) > -1) hits.push(a);
+      var needle = ' ' + norm(a) + ' ';
+      if (needle.length > 5 && hay.indexOf(needle) > -1) hits.push(a);
     });
     return hits;
   }
@@ -1772,7 +1833,9 @@
     fshow('pick');
   });
 
+  document.getElementById('deckCount').textContent = BOARDS.length;
   drawLineup();
+  drawFastSet();
   paintLineup();
   paintTeams();
 
