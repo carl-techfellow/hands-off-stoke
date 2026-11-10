@@ -305,6 +305,11 @@
   .boardpick.used{border-color:var(--green);opacity:.55}
   .lhint{font-size:13.5px;line-height:1.5;color:var(--grey);text-align:center;
        max-width:min(94vw,34em);margin:-.4em 0 1.1em}
+  .adminlink{text-align:center;font-size:13px;line-height:1.6;margin:1.2em 0 0}
+  .adminlink a{color:#FF8FA8;font-weight:700;text-decoration:none;
+       border-bottom:1.5px solid rgba(255,143,168,.45);padding-bottom:1px}
+  .adminlink a:hover{color:var(--paper);border-bottom-color:var(--paper)}
+  .adminlink span{color:var(--grey-dark);font-size:12px}
   .swapbox{width:100%;max-width:min(94vw,46em);margin-top:1.4em}
   .swapbox summary{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
        text-transform:uppercase;font-weight:700;color:var(--grey);cursor:pointer;
@@ -446,6 +451,9 @@
         <button class="fbtn" id="shuffleLineupBtn">&#127922; Reshuffle</button>
         <button class="fbtn go" id="startMatchBtn">Start the match</button>
       </div>
+      <p class="adminlink"><a href="admin.html" target="_blank" rel="noopener">Answer key
+      &amp; session log &rarr;</a><br><span>Open this on your own screen, not the projector.</span></p>
+
       <details class="swapbox">
         <summary>Swap a category by hand</summary>
         <div class="boardlist" id="boardList"></div>
@@ -843,8 +851,15 @@
   <div class="foot">i.c.stars Milwaukee · Cycle 21 · Guided Tech Learning stoke</div>
 </div>
 
+<script src="feud-data.js"></script>
 <script>
 (function(){
+  if (!window.FEUD) {
+    document.body.innerHTML = '<p style="font:16px/1.6 system-ui;padding:3em;' +
+      'max-width:34em;margin:auto">This page needs <code>feud-data.js</code> next to it. ' +
+      'If you downloaded <code>index.html</code> on its own, grab the whole folder.</p>';
+    return;
+  }
   // each card carries its own banned words - the obvious giveaways for that card
   // 18 cards across 18 different categories. Every task states its own length,
   // and carries the giveaway words that are banned for that card.
@@ -1205,193 +1220,14 @@
   // ================= PROMPT FEUD =================
   // Answers are authored from well-known model defaults, not measured runs - so
   // points are rank-based (30/25/20/15/10/5) rather than invented survey counts.
-  var BOARDS = [
-    { tag: "Cover letter",
-      asked: "Ask any chatbot to write a cover letter. Name the opening line it reaches for.",
-      answers: [
-        { text: "I am writing to express my interest in",
-          keys: ["writing to express", "express my interest", "express interest",
-                 "writing to apply", "interest in the position"] },
-        { text: "I am excited to apply for",
-          keys: ["excited to apply", "excited about this opportunity", "excited"] },
-        { text: "I am thrilled to apply for",
-          keys: ["thrilled to apply", "thrilled", "delighted to apply"] },
-        { text: "With a strong background in",
-          keys: ["strong background", "extensive background", "background in"] },
-        { text: "As a passionate professional",
-          keys: ["passionate", "passion for"] },
-        { text: "I came across your job posting",
-          keys: ["came across your posting", "came across your job", "saw your posting",
-                 "came across"] }
-      ] },
-    { tag: "Resume bullet",
-      asked: "Ask any chatbot to write a resume bullet. Name the verb it starts with.",
-      answers: [
-        { text: "Spearheaded", keys: ["spearheaded", "spearhead", "spearheading"] },
-        { text: "Leveraged", keys: ["leveraged", "leverage", "leveraging"] },
-        { text: "Streamlined", keys: ["streamlined", "streamline", "streamlining"] },
-        { text: "Collaborated with cross-functional teams",
-          keys: ["collaborated", "collaboration", "cross functional", "crossfunctional"] },
-        { text: "Implemented", keys: ["implemented", "implement", "implementing"] },
-        { text: "Utilized", keys: ["utilized", "utilize", "utilizing", "utilization"] }
-      ] },
-    { tag: "Status update",
-      asked: "Ask any chatbot to write your standup update. Name a phrase it drops in.",
-      answers: [
-        { text: "Circling back", keys: ["circling back", "circle back"] },
-        { text: "Just wanted to touch base", keys: ["touch base", "touching base"] },
-        { text: "On track", keys: ["on track", "on schedule", "tracking well"] },
-        { text: "Currently blocked on", keys: ["blocked", "blocker", "blockers", "roadblock"] },
-        { text: "Moving forward", keys: ["moving forward", "going forward"] },
-        { text: "Please let me know if", keys: ["let me know", "please let me know"] }
-      ] },
-    { tag: "Commit message",
-      asked: "Ask any chatbot to write a commit message. Name what it writes.",
-      answers: [
-        { text: "Update README", keys: ["update readme", "readme"] },
-        { text: "Fix bug", keys: ["fix bug", "bug fix", "fixed bug", "fix issue", "bugfix"] },
-        { text: "Initial commit", keys: ["initial commit", "first commit"] },
-        { text: "Refactor code", keys: ["refactor", "refactored", "refactoring"] },
-        { text: "Add new feature", keys: ["add feature", "new feature", "added feature"] },
-        { text: "Minor changes",
-          keys: ["minor changes", "small changes", "various changes", "minor fixes",
-                 "misc changes"] }
-      ] },
-    { tag: "Variable names",
-      asked: "Ask any chatbot for code holding a list of users. Name the variable it picks.",
-      answers: [
-        { text: "users", keys: ["users"] },
-        { text: "userList", keys: ["userlist", "user list", "users list"] },
-        { text: "data", keys: ["data"] },
-        { text: "result", keys: ["result", "results"] },
-        { text: "items", keys: ["items", "item list", "itemlist"] },
-        { text: "userData", keys: ["userdata", "user data"] }
-      ] },
-    { tag: "Test cases",
-      asked: "Ask any chatbot to write test cases for a login form. Name a case it lists.",
-      answers: [
-        { text: "Valid username and password",
-          keys: ["valid credentials", "valid username", "valid password", "happy path",
-                 "correct credentials", "successful login"] },
-        { text: "Invalid password",
-          keys: ["invalid password", "wrong password", "incorrect password", "bad password"] },
-        { text: "Empty fields",
-          keys: ["empty fields", "blank fields", "required fields", "empty", "blank",
-                 "left blank", "no input"] },
-        { text: "Password reset",
-          keys: ["password reset", "forgot password", "reset password"] },
-        { text: "SQL injection attempt", keys: ["sql injection", "injection"] },
-        { text: "Lockout after failed attempts",
-          keys: ["lockout", "locked out", "too many attempts", "failed attempts",
-                 "account locked"] }
-      ] },
-    { tag: "User story",
-      asked: "Ask any chatbot for a Jira user story. Name the words it uses.",
-      answers: [
-        { text: "As a user, I want", keys: ["as a user", "i want"] },
-        { text: "So that I can", keys: ["so that i can", "so that"] },
-        { text: "Acceptance criteria", keys: ["acceptance criteria", "acceptance"] },
-        { text: "Given, when, then", keys: ["given when then", "given when", "when then"] },
-        { text: "As an admin", keys: ["as an admin", "as an administrator", "admin"] },
-        { text: "Definition of done", keys: ["definition of done", "done criteria"] }
-      ] },
-    { tag: "Slide titles",
-      asked: "Ask any chatbot to title the slides of a pitch deck. Name a title it gives you.",
-      answers: [
-        { text: "Key Takeaways", keys: ["key takeaways", "takeaways", "key points"] },
-        { text: "The Problem", keys: ["the problem", "problem statement", "problem"] },
-        { text: "Our Solution", keys: ["our solution", "the solution", "solution"] },
-        { text: "Next Steps", keys: ["next steps", "the road ahead"] },
-        { text: "Market Opportunity",
-          keys: ["market opportunity", "market size", "the market", "opportunity"] },
-        { text: "Thank You", keys: ["thank you", "questions", "q and a", "thanks"] }
-      ] },
-    { tag: "App ideas",
-      asked: "Ask any chatbot for a beginner web app idea. Name the app it suggests.",
-      answers: [
-        { text: "To-do list", keys: ["to do list", "todo list", "todo", "task list",
-                                     "to do app", "task tracker"] },
-        { text: "Weather app", keys: ["weather app", "weather", "weather dashboard"] },
-        { text: "Recipe finder", keys: ["recipe finder", "recipe app", "recipe", "recipes"] },
-        { text: "Budget tracker",
-          keys: ["budget tracker", "budget app", "budget", "expense tracker", "expenses"] },
-        { text: "Personal blog", keys: ["personal blog", "blog", "blogging platform"] },
-        { text: "Quiz app", keys: ["quiz app", "quiz", "trivia", "flashcards"] }
-      ] },
-    { tag: "Hedging",
-      asked: "Ask any chatbot something it is unsure about. Name how it hedges.",
-      answers: [
-        { text: "It depends", keys: ["it depends", "depends"] },
-        { text: "There are several factors to consider",
-          keys: ["several factors", "many factors", "factors to consider",
-                 "a few factors", "number of factors"] },
-        { text: "I would recommend consulting a professional",
-          keys: ["consult a professional", "consulting a professional", "seek professional",
-                 "talk to a professional", "ask an expert"] },
-        { text: "I do not have access to real-time information",
-          keys: ["real time information", "real time data", "no access to",
-                 "cannot access", "do not have access"] },
-        { text: "As an AI", keys: ["as an ai", "as a language model", "ai language model"] },
-        { text: "Generally speaking",
-          keys: ["generally speaking", "in general", "typically", "usually"] }
-      ] },
-    { tag: "Sign-offs",
-      asked: "Ask any chatbot for anything at all. Name the line it ends on.",
-      answers: [
-        { text: "Let me know if you have any questions",
-          keys: ["let me know", "any questions", "if you have questions"] },
-        { text: "I hope this helps", keys: ["hope this helps", "hope that helps"] },
-        { text: "Feel free to reach out", keys: ["feel free", "reach out", "dont hesitate"] },
-        { text: "Would you like me to",
-          keys: ["would you like me to", "want me to", "shall i"] },
-        { text: "Happy to help", keys: ["happy to help", "glad to help"] },
-        { text: "Good luck", keys: ["good luck", "best of luck"] }
-      ] },
-    { tag: "Formatting",
-      asked: "Ask any chatbot a plain question. Name a formatting habit in the answer.",
-      answers: [
-        { text: "Bullet points", keys: ["bullet points", "bullets", "bulleted list", "bullet"] },
-        { text: "Bold headers",
-          keys: ["bold headers", "bold text", "headers", "headings", "bold"] },
-        { text: "Numbered list", keys: ["numbered list", "ordered list", "numbers"] },
-        { text: "Em dashes", keys: ["em dash", "em dashes", "dashes", "dash"] },
-        { text: "Here is a breakdown",
-          keys: ["a breakdown", "breakdown", "lets break", "break it down"] },
-        { text: "A closing summary",
-          keys: ["closing summary", "in summary", "summary", "recap", "wrap up"] }
-      ] }
-  ];
-  var POINTS = [30, 25, 20, 15, 10, 5];
-  var MULTIPLIERS = [1, 1, 2, 3];
-  var TARGET = 300;
+  var BOARDS = FEUD.BOARDS;
+  var POINTS = FEUD.POINTS;
+  var MULTIPLIERS = FEUD.MULTIPLIERS;
+  var TARGET = FEUD.TARGET;
 
   // Fast Money draws five of these per match, same as the round categories.
-  var FASTMONEY = [
-    { q: "Name a word a chatbot uses to start a list.",
-      a: ["First", "Additionally", "Moreover", "Furthermore", "To begin"] },
-    { q: "Name something a chatbot says it cannot do.",
-      a: ["Access real-time information", "Feel emotions", "Browse the web",
-          "Remember past conversations", "Make phone calls"] },
-    { q: "Name an adjective chatbots overuse.",
-      a: ["Robust", "Comprehensive", "Innovative", "Seamless", "Dynamic"] },
-    { q: "Name how a chatbot ends an essay.",
-      a: ["In conclusion", "To sum up", "Ultimately", "In summary", "All in all"] },
-    { q: "Name a punctuation mark chatbots overuse.",
-      a: ["Em dash", "Colon", "Semicolon", "Exclamation point", "Parentheses"] },
-    { q: "Name the word a chatbot uses instead of \"use\".",
-      a: ["Utilize", "Leverage", "Employ", "Harness", "Apply"] },
-    { q: "Name the job title a chatbot invents for a fake example.",
-      a: ["Software Engineer", "Project Manager", "Marketing Manager",
-          "Data Analyst", "Teacher"] },
-    { q: "Name the fake company a chatbot puts in an example.",
-      a: ["Acme Corp", "TechCorp", "XYZ Company", "Globex", "Innovate Inc"] },
-    { q: "Name the placeholder person a chatbot writes about.",
-      a: ["John Doe", "Jane Doe", "Alice", "Bob", "Sarah"] },
-    { q: "Name how a chatbot opens a reply.",
-      a: ["Great question", "Certainly", "Absolutely", "Of course",
-          "I would be happy to help"] }
-  ];
-  var FAST_TARGET = 200;
+  var FASTMONEY = FEUD.FASTMONEY;
+  var FAST_TARGET = FEUD.FAST_TARGET;
 
   var feudApp = document.getElementById('feudApp');
   var fsPick = document.getElementById('fsPick');
@@ -1425,9 +1261,35 @@
   var faceoffWinner = null; // who won the face-off, pending play/pass
   var phase = 'faceoff';    // faceoff | playpass | play | steal | over
   var bank = 0, strikes = 0, currentBoard = null;
-  var R2_POINTS = 25;
+  var R2_POINTS = FEUD.R2_POINTS;
 
   function tname(i){ return teams[i].name || ('Team ' + (i + 1)); }
+
+  // ---- session log -------------------------------------------------------
+  // Written to localStorage so admin.html can read it in another window. The
+  // host screen is projected; the answer key and the log are not.
+  var LOG_KEY = FEUD.LOG_KEY;
+
+  function readLog(){
+    try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+
+  function logEvent(kind, detail){
+    var e = detail || {};
+    e.kind = kind;
+    e.at = new Date().toISOString();
+    e.round = (phase === 'setup') ? 0 : (roundIdx + 1);
+    e.board = currentBoard ? currentBoard.tag : '';
+    e.s1 = teams[0].score;
+    e.s2 = teams[1].score;
+    try {
+      var all = readLog();
+      all.push(e);
+      if (all.length > 800) all = all.slice(all.length - 800);
+      localStorage.setItem(LOG_KEY, JSON.stringify(all));
+    } catch (err) { /* private browsing, full quota - the game still plays */ }
+  }
 
   // ---- keyword matching ----------------------------------------------------
   // Nobody guesses "I am writing to express my interest in" word for word, so every
@@ -1586,6 +1448,11 @@
   document.getElementById('startMatchBtn').addEventListener('click', function(){
     teams[0].score = 0; teams[1].score = 0;
     roundIdx = 0; control = 0;
+    logEvent('match-start', {
+      detail: lineup.map(function(b, i){
+        return 'R' + (i + 1) + ' x' + MULTIPLIERS[i] + ' ' + b.tag;
+      }).join(' | ')
+    });
     startRound();
   });
 
@@ -1599,6 +1466,7 @@
     phase = 'faceoff';
     buildBoard();
     paintAll();
+    logEvent('round-start', { detail: currentBoard.tag + '  x' + multiplier() });
     fshow('board');
   }
 
@@ -1702,9 +1570,11 @@
     var text = input.value.trim();
     if (!text) return;
     if (phase !== 'play' && phase !== 'steal') return;
+    var guessingTeam = (phase === 'steal') ? tname(1 - control) : tname(control);
     var i = matchGuess(text);
     if (i === -1) {
       setVerdict('\u2715  Not on the board', 'miss');
+      logEvent('guess-miss', { team: guessingTeam, said: text, detail: 'not on the board' });
       beep(200, 0.3);
       input.select();
       return;
@@ -1712,11 +1582,16 @@
     var btn = boardGrid.querySelector('[data-i="' + i + '"]');
     if (btn && btn.classList.contains('revealed')) {
       setVerdict('Already up there \u2014 ' + ansText(currentBoard.answers[i]), 'dup');
+      logEvent('guess-repeat', { team: guessingTeam, said: text,
+                                 detail: 'already revealed: ' + ansText(currentBoard.answers[i]) });
       input.select();
       return;
     }
     input.value = '';
     setVerdict('\u2713  #' + (i + 1) + '  ' + ansText(currentBoard.answers[i]), 'hit');
+    logEvent('guess-hit', { team: guessingTeam, said: text,
+                            detail: '#' + (i + 1) + ' ' + ansText(currentBoard.answers[i]),
+                            points: POINTS[i] * multiplier() });
     revealSlot(i);
   }
 
@@ -1730,14 +1605,20 @@
   function wonFaceoff(i){
     faceoffWinner = i;
     phase = 'playpass';
+    logEvent('face-off', { team: tname(i), detail: 'won the buzz' });
     paintAll();
   }
 
   document.getElementById('playBtn').addEventListener('click', function(){
-    control = faceoffWinner; phase = 'play'; paintAll();
+    control = faceoffWinner; phase = 'play';
+    logEvent('play', { team: tname(control), detail: 'chose to play' });
+    paintAll();
   });
   document.getElementById('passBtn').addEventListener('click', function(){
-    control = 1 - faceoffWinner; phase = 'play'; paintAll();
+    control = 1 - faceoffWinner; phase = 'play';
+    logEvent('pass', { team: tname(faceoffWinner),
+                       detail: 'passed to ' + tname(control) });
+    paintAll();
   });
 
   strikeBtn.addEventListener('click', function(){
@@ -1748,7 +1629,12 @@
     strikeFlash.classList.add('show');
     setTimeout(function(){ strikeFlash.classList.remove('show'); }, 750);
     beep(180, 0.45);
-    if (strikes >= 3) phase = 'steal';
+    logEvent('strike', { team: tname(control), detail: 'strike ' + strikes + ' of 3' });
+    if (strikes >= 3) {
+      phase = 'steal';
+      logEvent('steal-open', { team: tname(1 - control),
+                               detail: 'one guess for ' + bank });
+    }
     paintAll();
   });
 
@@ -1773,6 +1659,8 @@
   });
 
   function awardBank(to){
+    logEvent('award', { team: tname(to), points: bank,
+                        detail: 'took the bank of ' + bank });
     teams[to].score += bank;
     bank = 0; strikes = 0;
     beep(900, 0.4);
@@ -1818,8 +1706,16 @@
     phase = 'over';
     fshow('sudden');
   }
-  document.getElementById('sd1Btn').addEventListener('click', function(){ teams[0].score += TARGET; goFastMoney(); });
-  document.getElementById('sd2Btn').addEventListener('click', function(){ teams[1].score += TARGET; goFastMoney(); });
+  document.getElementById('sd1Btn').addEventListener('click', function(){
+    teams[0].score += TARGET;
+    logEvent('sudden-death', { team: tname(0), detail: 'won sudden death' });
+    goFastMoney();
+  });
+  document.getElementById('sd2Btn').addEventListener('click', function(){
+    teams[1].score += TARGET;
+    logEvent('sudden-death', { team: tname(1), detail: 'won sudden death' });
+    goFastMoney();
+  });
 
   // ---------------- fast money ----------------
   var fastPlayer = 0;                 // 0 or 1
@@ -2011,6 +1907,12 @@
     if (t.r2 !== 'ok' && ok) t.score += R2_POINTS;
     if (t.r2 === 'ok' && !ok) t.score -= R2_POINTS;
     t.r2 = ok ? 'ok' : 'no';
+    logEvent(ok ? 'escaped' : 'no-escape', {
+      team: tname(judging),
+      said: (t.r2text || '').slice(0, 400),
+      points: ok ? R2_POINTS : 0,
+      detail: ok ? 'beat the board' : 'still on the board'
+    });
     r2Judge.hidden = true;
     judging = null;
     paintR2Teams();
@@ -2061,6 +1963,8 @@
   });
 
   document.getElementById('finalScoreBtn').addEventListener('click', function(){
+    logEvent('final', { detail: tname(0) + ' ' + teams[0].score + ' - ' +
+                                tname(1) + ' ' + teams[1].score });
     var best = Math.max(teams[0].score, teams[1].score);
     var names = [];
     teams.forEach(function(t, i){ if (t.score === best) names.push(tname(i)); });

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Prompt Feud &mdash; answer key &amp; session log</title>
+<style>
+  :root{
+    --ink:#161217; --paper:#FAF6F2; --red:#D6003C; --green:#2F9E58;
+    --grey:#6B6470; --line:#E2DAD2;
+    --sans:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    --mono:Consolas,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+       font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+  .wrap{max-width:62em;margin:0 auto;padding:2.2em 1.4em 5em}
+
+  header{border-bottom:3px solid var(--ink);padding-bottom:1.2em;margin-bottom:1.6em}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+       text-transform:uppercase;font-weight:700;color:var(--red);margin:0 0 .4em}
+  h1{font-size:clamp(24px,4.4vw,34px);line-height:1.15;margin:0 0 .5em;letter-spacing:-.01em}
+  .lede{font-size:16.5px;color:#413B47;margin:0;max-width:44em}
+  .lede b{color:var(--ink)}
+
+  .warn{background:#FFF0F4;border:2px solid var(--red);border-radius:10px;
+        padding:.9em 1.1em;font-size:14.5px;margin:1.4em 0 0}
+  .warn b{text-transform:uppercase;font-family:var(--mono);font-size:11px;
+        letter-spacing:.1em;display:block;margin-bottom:.25em;color:var(--red)}
+
+  nav{display:flex;flex-wrap:wrap;gap:.45em;margin:1.6em 0 2em}
+  nav a{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+        font-weight:700;color:var(--ink);text-decoration:none;border:2px solid var(--ink);
+        border-radius:999px;padding:.45em .95em}
+  nav a:hover{background:var(--ink);color:var(--paper)}
+
+  h2{font-size:clamp(19px,3vw,24px);margin:2.6em 0 .3em;padding-top:.6em;
+     border-top:1px solid var(--line)}
+  h2:first-of-type{margin-top:1.4em}
+  .sectionnote{font-size:14.5px;color:var(--grey);margin:.2em 0 1.4em;max-width:44em}
+
+  .tools{display:flex;flex-wrap:wrap;gap:.5em;align-items:center;margin-bottom:1.2em}
+  .btn{font-family:var(--sans);font-size:14px;font-weight:700;border:2px solid var(--ink);
+       background:var(--paper);color:var(--ink);border-radius:999px;padding:.5em 1.1em;
+       cursor:pointer}
+  .btn:hover{background:var(--ink);color:var(--paper)}
+  .btn.danger{border-color:var(--red);color:var(--red)}
+  .btn.danger:hover{background:var(--red);color:#fff}
+  .search{flex:1 1 16em;min-width:0;font-family:var(--sans);font-size:15px;
+       padding:.55em .9em;border:2px solid var(--line);border-radius:8px;background:#fff}
+  .search:focus{outline:none;border-color:var(--red)}
+  .count{font-family:var(--mono);font-size:12px;color:var(--grey);letter-spacing:.06em}
+
+  /* ---- answer key ---- */
+  .board{border:2px solid var(--line);border-radius:12px;margin-bottom:.9em;background:#fff;
+         overflow:hidden}
+  .board[hidden]{display:none}
+  .board > summary{cursor:pointer;padding:.9em 1.1em;list-style:none;
+       display:flex;flex-wrap:wrap;gap:.3em .8em;align-items:baseline}
+  .board > summary::-webkit-details-marker{display:none}
+  .board > summary:hover{background:#FBF7F3}
+  .btag{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+        font-weight:700;color:var(--red);background:#FFF0F4;border-radius:999px;
+        padding:.25em .7em;white-space:nowrap}
+  .bq{font-size:15px;font-weight:600;flex:1 1 20em;min-width:0}
+  .bmore{font-family:var(--mono);font-size:10.5px;color:var(--grey);letter-spacing:.06em}
+
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  thead th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+       color:var(--grey);text-align:left;font-weight:700;padding:.5em .7em;
+       border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#FBF7F3}
+  td{padding:.6em .7em;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  .rank{font-family:var(--mono);font-weight:700;color:var(--red);white-space:nowrap;width:1%}
+  .pts{font-family:var(--mono);font-weight:700;white-space:nowrap;width:1%;text-align:right}
+  .pts span{color:var(--grey);font-weight:400}
+  .ans{font-weight:700}
+  .keys{display:flex;flex-wrap:wrap;gap:.3em;margin-top:.4em}
+  .key{font-family:var(--mono);font-size:11px;background:#F2EEEA;border:1px solid var(--line);
+       border-radius:999px;padding:.15em .55em;color:#413B47}
+  .key.strict{background:#EAF6EE;border-color:#BEE0CA}
+  .scanlegend{font-size:13px;color:var(--grey);margin:.2em 0 1.2em}
+  .scanlegend .key{display:inline-block;margin:0 .15em}
+
+  /* ---- log ---- */
+  .logwrap{border:2px solid var(--line);border-radius:12px;background:#fff;overflow:auto;
+       max-height:34em}
+  .logwrap table{font-size:14px}
+  .logwrap thead th{position:sticky;top:0;z-index:1}
+  .when{font-family:var(--mono);font-size:12px;color:var(--grey);white-space:nowrap;width:1%}
+  .rnd{font-family:var(--mono);font-size:12px;white-space:nowrap;width:1%;text-align:center}
+  .kind{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;
+        font-weight:700;white-space:nowrap;width:1%}
+  .kind.hit{color:var(--green)}
+  .kind.miss,.kind.strike{color:var(--red)}
+  .kind.award,.kind.final{color:var(--ink)}
+  .kind.quiet{color:var(--grey)}
+  .said{font-style:italic}
+  .said:before{content:'\201C'} .said:after{content:'\201D'}
+  .score{font-family:var(--mono);font-size:12.5px;white-space:nowrap;width:1%;text-align:right}
+  .empty{padding:2.4em 1.2em;text-align:center;color:var(--grey);font-size:15px}
+  .live{display:inline-flex;align-items:center;gap:.4em;font-family:var(--mono);font-size:11px;
+        letter-spacing:.08em;text-transform:uppercase;color:var(--grey)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block}
+  .dot.off{background:var(--grey)}
+
+  footer{margin-top:3.4em;padding-top:1.2em;border-top:1px solid var(--line);
+         font-size:13.5px;color:var(--grey)}
+  footer a{color:var(--ink)}
+
+  @media print{
+    nav,.tools,.warn,footer{display:none}
+    .board{break-inside:avoid;border-color:#bbb}
+    .board > summary{background:#f4f4f4}
+    body{font-size:11pt}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="kicker">Prompt Feud &middot; host only</p>
+  <h1>Answer key &amp; session log</h1>
+  <p class="lede">Every board, every answer, every keyword the game will accept &mdash; plus a
+  running log of what each team actually said. The log fills itself as you play
+  <b>index.html</b> in the other window.</p>
+  <div class="warn">
+    <b>Keep this off the projector</b>
+    This page gives away every answer on every board. Open it on your own screen,
+    or print it and keep it face down.
+  </div>
+</header>
+
+<nav>
+  <a href="index.html">&larr; Back to the game</a>
+  <a href="#key">Answer key</a>
+  <a href="#fast">Fast Money</a>
+  <a href="#log">Session log</a>
+</nav>
+
+<h2 id="key">The boards</h2>
+<p class="sectionnote">Ranked answers with the points they are worth at single value. Round 3
+doubles every number, round 4 triples it. A guess only has to land on one keyword.</p>
+
+<div class="tools">
+  <input class="search" id="search" type="search" placeholder="Filter boards, answers or keywords&hellip;">
+  <button class="btn" id="expandAll">Open all</button>
+  <button class="btn" id="collapseAll">Close all</button>
+  <span class="count" id="keyCount"></span>
+</div>
+<p class="scanlegend"><span class="key strict">green keywords</span> also count as
+&ldquo;busted&rdquo; when Beat the Board scans a team&rsquo;s output.
+<span class="key">Grey</span> ones only help with guessing &mdash; single words like
+<i>data</i> would flag innocent output.</p>
+
+<div id="boards"></div>
+
+<h2 id="fast">Fast Money</h2>
+<p class="sectionnote">Ten questions in the deck; the game draws five per match. Player one has
+20 seconds, player two has 25 and cannot repeat player one. 200 combined wins it.</p>
+<div id="fastmoney"></div>
+
+<h2 id="log">Session log</h2>
+<p class="sectionnote">Written by the game into this browser&rsquo;s local storage. It survives a
+refresh and a closed laptop, so you can read the whole match back afterwards. Nothing
+leaves this machine.</p>
+
+<div class="tools">
+  <span class="live"><span class="dot" id="liveDot"></span><span id="liveText">watching</span></span>
+  <button class="btn" id="refreshLog">Refresh now</button>
+  <button class="btn" id="copyLog">Copy as text</button>
+  <button class="btn" id="csvLog">Download CSV</button>
+  <button class="btn danger" id="clearLog">Clear the log</button>
+  <span class="count" id="logCount"></span>
+</div>
+
+<div class="logwrap">
+  <table>
+    <thead>
+      <tr><th>Time</th><th>Rd</th><th>Event</th><th>Team</th><th>What was said</th>
+          <th>Result</th><th>Pts</th><th>Score</th></tr>
+    </thead>
+    <tbody id="logBody"></tbody>
+  </table>
+  <div class="empty" id="logEmpty">Nothing logged yet. Start a match in the other window
+  and this fills in as you go.</div>
+</div>
+
+<footer>
+  <p>Answers here are authored from well-known model defaults, not measured from a run of
+  100 prompts &mdash; which is why scoring is rank-based rather than claiming survey counts
+  nobody counted. If the room produces a better default than the board does, the room is
+  right and the board needs editing in <code>feud-data.js</code>.</p>
+</footer>
+
+</div>
+
+<script src="feud-data.js"></script>
+<script>
+(function(){
+  if (!window.FEUD) {
+    document.body.innerHTML = '<p style="font:16px/1.6 system-ui;padding:3em;max-width:34em;' +
+      'margin:auto">This page needs <code>feud-data.js</code> next to it.</p>';
+    return;
+  }
+  var BOARDS = FEUD.BOARDS, FASTMONEY = FEUD.FASTMONEY, POINTS = FEUD.POINTS;
+  var LOG_KEY = FEUD.LOG_KEY;
+
+  function el(tag, cls, text){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = text;
+    return e;
+  }
+
+  // ---------------- answer key ----------------
+  var boardsEl = document.getElementById('boards');
+
+  BOARDS.forEach(function(b, bi){
+    var d = el('details', 'board');
+    d.setAttribute('data-haystack',
+      (b.tag + ' ' + b.asked + ' ' +
+       b.answers.map(function(a){ return a.text + ' ' + a.keys.join(' '); }).join(' ')
+      ).toLowerCase());
+
+    var sum = el('summary');
+    sum.appendChild(el('span', 'btag', b.tag));
+    sum.appendChild(el('span', 'bq', b.asked));
+    sum.appendChild(el('span', 'bmore', '6 answers'));
+    d.appendChild(sum);
+
+    var table = el('table');
+    var thead = el('thead');
+    var hr = el('tr');
+    ['#', 'Answer', 'Accepted keywords', 'Pts'].forEach(function(h, i){
+      var th = el('th', i === 3 ? 'pts' : null, h);
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    var tbody = el('tbody');
+    b.answers.forEach(function(a, i){
+      var tr = el('tr');
+      tr.appendChild(el('td', 'rank', '#' + (i + 1)));
+
+      var td = el('td');
+      td.appendChild(el('div', 'ans', a.text));
+      tr.appendChild(td);
+
+      var kd = el('td');
+      var ks = el('div', 'keys');
+      a.keys.forEach(function(k){
+        // mirrors strictKeys() in the game: multi-word triggers also bust output
+        ks.appendChild(el('span', 'key' + (k.indexOf(' ') > -1 ? ' strict' : ''), k));
+      });
+      kd.appendChild(ks);
+      kd.appendChild(el('span', 'bmore', a.keys.length + ' triggers'));
+      tr.appendChild(kd);
+
+      var pd = el('td', 'pts');
+      pd.appendChild(document.createTextNode(POINTS[i]));
+      var mult = el('span');
+      mult.textContent = '  /' + (POINTS[i] * 2) + ' /' + (POINTS[i] * 3);
+      pd.appendChild(mult);
+      tr.appendChild(pd);
+
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    d.appendChild(table);
+    boardsEl.appendChild(d);
+  });
+
+  var totalAnswers = BOARDS.reduce(function(n, b){ return n + b.answers.length; }, 0);
+  var totalKeys = BOARDS.reduce(function(n, b){
+    return n + b.answers.reduce(function(m, a){ return m + a.keys.length; }, 0);
+  }, 0);
+  document.getElementById('keyCount').textContent =
+    BOARDS.length + ' boards · ' + totalAnswers + ' answers · ' + totalKeys + ' keywords';
+
+  document.getElementById('search').addEventListener('input', function(){
+    var q = this.value.trim().toLowerCase();
+    var shown = 0;
+    [].slice.call(boardsEl.querySelectorAll('.board')).forEach(function(d){
+      var hit = !q || d.getAttribute('data-haystack').indexOf(q) > -1;
+      d.hidden = !hit;
+      if (hit) { shown++; if (q) d.open = true; }
+    });
+    document.getElementById('keyCount').textContent = q
+      ? (shown + ' of ' + BOARDS.length + ' boards match')
+      : (BOARDS.length + ' boards · ' + totalAnswers + ' answers · ' + totalKeys + ' keywords');
+  });
+
+  document.getElementById('expandAll').addEventListener('click', function(){
+    [].slice.call(boardsEl.querySelectorAll('.board')).forEach(function(d){ d.open = true; });
+  });
+  document.getElementById('collapseAll').addEventListener('click', function(){
+    [].slice.call(boardsEl.querySelectorAll('.board')).forEach(function(d){ d.open = false; });
+  });
+
+  // ---------------- fast money key ----------------
+  var fmEl = document.getElementById('fastmoney');
+  FASTMONEY.forEach(function(f, fi){
+    var d = el('details', 'board');
+    var sum = el('summary');
+    sum.appendChild(el('span', 'btag', 'Q' + (fi + 1)));
+    sum.appendChild(el('span', 'bq', f.q));
+    sum.appendChild(el('span', 'bmore', f.a.length + ' answers'));
+    d.appendChild(sum);
+
+    var table = el('table');
+    var tbody = el('tbody');
+    f.a.forEach(function(ans, i){
+      var tr = el('tr');
+      tr.appendChild(el('td', 'rank', '#' + (i + 1)));
+      tr.appendChild(el('td', 'ans', ans));
+      tr.appendChild(el('td', 'pts', String(POINTS[i])));
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    d.appendChild(table);
+    fmEl.appendChild(d);
+  });
+
+  // ---------------- session log ----------------
+  var LABEL = {
+    'match-start':  ['match', 'award'],
+    'round-start':  ['round', 'quiet'],
+    'face-off':     ['face-off', 'quiet'],
+    'play':         ['play', 'quiet'],
+    'pass':         ['pass', 'quiet'],
+    'guess-hit':    ['hit', 'hit'],
+    'guess-miss':   ['miss', 'miss'],
+    'guess-repeat': ['repeat', 'quiet'],
+    'strike':       ['strike', 'strike'],
+    'steal-open':   ['steal', 'strike'],
+    'award':        ['award', 'award'],
+    'sudden-death': ['sudden', 'award'],
+    'escaped':      ['escaped', 'hit'],
+    'no-escape':    ['no escape', 'miss'],
+    'final':        ['final', 'final']
+  };
+
+  var logBody = document.getElementById('logBody');
+  var logEmpty = document.getElementById('logEmpty');
+  var lastJson = null;
+
+  function readLog(){
+    try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+
+  function clock(iso){
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    function pad(n){ return (n < 10 ? '0' : '') + n; }
+    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+
+  function paintLog(){
+    var raw = localStorage.getItem(LOG_KEY) || '[]';
+    if (raw === lastJson) return;
+    lastJson = raw;
+    var all = readLog();
+    logBody.innerHTML = '';
+    logEmpty.hidden = all.length > 0;
+    all.forEach(function(e){
+      var meta = LABEL[e.kind] || [e.kind, 'quiet'];
+      var tr = el('tr');
+      tr.appendChild(el('td', 'when', clock(e.at)));
+      tr.appendChild(el('td', 'rnd', e.round ? String(e.round) : '—'));
+      tr.appendChild(el('td', 'kind ' + meta[1], meta[0]));
+      tr.appendChild(el('td', null, e.team || '—'));
+      tr.appendChild(el('td', e.said ? 'said' : null, e.said || '—'));
+      tr.appendChild(el('td', null, e.detail || '—'));
+      tr.appendChild(el('td', 'pts', e.points ? String(e.points) : '—'));
+      tr.appendChild(el('td', 'score', (e.s1 || 0) + '–' + (e.s2 || 0)));
+      logBody.appendChild(tr);
+    });
+    document.getElementById('logCount').textContent =
+      all.length ? (all.length + ' entries logged') : 'empty';
+  }
+
+  function asText(){
+    return readLog().map(function(e){
+      var meta = LABEL[e.kind] || [e.kind];
+      return [clock(e.at), 'R' + (e.round || 0), e.board || '', meta[0],
+              e.team || '', e.said ? '"' + e.said + '"' : '',
+              e.detail || '', e.points ? ('+' + e.points) : '',
+              (e.s1 || 0) + '-' + (e.s2 || 0)]
+             .filter(function(x){ return x !== ''; }).join('  |  ');
+    }).join('\n');
+  }
+
+  function asCsv(){
+    var head = ['time', 'round', 'board', 'event', 'team', 'said', 'result', 'points',
+                'team1', 'team2'];
+    function cell(v){
+      var t = (v === undefined || v === null) ? '' : String(v);
+      return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+    }
+    var rows = readLog().map(function(e){
+      var meta = LABEL[e.kind] || [e.kind];
+      return [e.at, e.round || '', e.board || '', meta[0], e.team || '', e.said || '',
+              e.detail || '', e.points || '', e.s1 || 0, e.s2 || 0].map(cell).join(',');
+    });
+    return head.join(',') + '\n' + rows.join('\n');
+  }
+
+  document.getElementById('refreshLog').addEventListener('click', function(){
+    lastJson = null; paintLog();
+  });
+
+  document.getElementById('copyLog').addEventListener('click', function(){
+    var btn = this, text = asText();
+    if (!text) { btn.textContent = 'Nothing to copy'; }
+    else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function(){ btn.textContent = 'Copied'; },
+                                               function(){ btn.textContent = 'Copy failed'; });
+    } else {
+      var ta = el('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); btn.textContent = 'Copied'; }
+      catch (e) { btn.textContent = 'Copy failed'; }
+      document.body.removeChild(ta);
+    }
+    setTimeout(function(){ btn.textContent = 'Copy as text'; }, 1800);
+  });
+
+  document.getElementById('csvLog').addEventListener('click', function(){
+    var blob = new Blob([asCsv()], {type: 'text/csv;charset=utf-8'});
+    var a = el('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'prompt-feud-log.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  });
+
+  document.getElementById('clearLog').addEventListener('click', function(){
+    var btn = this;
+    if (btn.getAttribute('data-armed') !== '1') {
+      btn.setAttribute('data-armed', '1');
+      btn.textContent = 'Really clear it?';
+      setTimeout(function(){
+        btn.removeAttribute('data-armed');
+        btn.textContent = 'Clear the log';
+      }, 4000);
+      return;
+    }
+    localStorage.removeItem(LOG_KEY);
+    btn.removeAttribute('data-armed');
+    btn.textContent = 'Clear the log';
+    lastJson = null;
+    paintLog();
+  });
+
+  // live-ish: the storage event fires for other tabs, the poll covers this one
+  window.addEventListener('storage', function(e){
+    if (!e.key || e.key === LOG_KEY) paintLog();
+  });
+  var dot = document.getElementById('liveDot');
+  var liveText = document.getElementById('liveText');
+  try {
+    localStorage.setItem('promptfeud.probe', '1');
+    localStorage.removeItem('promptfeud.probe');
+    setInterval(paintLog, 1500);
+  } catch (e) {
+    dot.className = 'dot off';
+    liveText.textContent = 'storage blocked';
+  }
+  paintLog();
+})();
+</script>
+</body>
+</html>
