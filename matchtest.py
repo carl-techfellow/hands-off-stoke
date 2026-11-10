@@ -10,6 +10,11 @@ HARNESS = r"""
   function picks(){ return boardList.querySelectorAll('.boardpick'); }
   function slots(){ return boardGrid.querySelectorAll('.slot'); }
   function startBtn(){ return document.getElementById('startMatchBtn'); }
+  // the app draws at random; tests that assert on specific boards force the order
+  function fixLineup(){
+    document.getElementById('clearLineupBtn').click();
+    picks()[0].click(); picks()[1].click(); picks()[2].click(); picks()[3].click();
+  }
   function faceoff(i){ document.getElementById(i === 0 ? 'fo1Btn' : 'fo2Btn').click(); }
   function strike3(){ var b = document.getElementById('strikeBtn'); b.click(); b.click(); b.click(); }
   // win a round outright: face-off -> play -> reveal one slot -> award
@@ -26,14 +31,40 @@ HARNESS = r"""
     chk('lands on lineup builder', fsPick.classList.contains('active'));
     chk('six boards offered', picks().length === 6);
     chk('four lineup slots shown', lineupEl.querySelectorAll('.lslot').length === 4);
-    chk('start disabled with empty lineup', startBtn().disabled === true);
 
-    // ---- build the lineup up front ----
+    // ---- categories are drawn automatically ----
+    chk('lineup auto-filled on arrival', lineup.length === 4);
+    chk('all four slots filled', lineupEl.querySelectorAll('.lslot.filled').length === 4);
+    chk('start ready without any picking', startBtn().disabled === false);
+    chk('draw has no repeats', new Set(lineup.map(function(b){ return b.tag; })).size === 4);
+    chk('every drawn board is a real board',
+        lineup.every(function(b){ return BOARDS.indexOf(b) > -1; }));
+    chk('drawn boards marked used in the swap list',
+        boardList.querySelectorAll('.boardpick.used').length === 4);
+
+    // reshuffle keeps a legal four-board draw
+    var before = lineup.map(function(b){ return b.tag; }).join(',');
+    var changed = false;
+    for (var tries = 0; tries < 25 && !changed; tries++) {
+      document.getElementById('shuffleLineupBtn').click();
+      if (lineup.map(function(b){ return b.tag; }).join(',') !== before) changed = true;
+    }
+    chk('reshuffle produces a different draw', changed);
+    chk('reshuffle still draws four', lineup.length === 4);
+    chk('reshuffle has no repeats', new Set(lineup.map(function(b){ return b.tag; })).size === 4);
+
+    document.getElementById('clearLineupBtn').click();
+    chk('clear empties the lineup', lineup.length === 0);
+    chk('clear disables start', startBtn().disabled === true);
+    chk('clear asks for four more', document.getElementById('lineupHint').textContent.indexOf('4 more') > -1);
+
+    // ---- manual swapping still works ----
     picks()[0].click();
     chk('one board picked', lineup.length === 1);
     chk('picked board marked used', picks()[0].classList.contains('used'));
     chk('slot 1 filled', lineupEl.querySelectorAll('.lslot.filled').length === 1);
     chk('still disabled at one', startBtn().disabled === true);
+    chk('hint counts the gap', document.getElementById('lineupHint').textContent.indexOf('3 more') > -1);
 
     picks()[0].click();
     chk('re-click removes from lineup', lineup.length === 0);
@@ -48,11 +79,7 @@ HARNESS = r"""
     chk('multipliers labelled on lineup',
         lineupEl.textContent.indexOf('\u00d72') > -1 && lineupEl.textContent.indexOf('\u00d73') > -1);
 
-    document.getElementById('clearLineupBtn').click();
-    chk('clear empties the lineup', lineup.length === 0);
-    chk('clear disables start', startBtn().disabled === true);
-
-    picks()[0].click(); picks()[1].click(); picks()[2].click(); picks()[3].click();
+    fixLineup();
     startBtn().click();
 
     // ---- round 1: face-off ----
@@ -210,16 +237,17 @@ HARNESS = r"""
     chk('beat the board reachable', fsRound2.classList.contains('active'));
     chk('avoid chips listed', avoidList.querySelectorAll('.ac').length === 6);
 
-    // ---- new match wipes everything ----
+    // ---- new match wipes everything and draws again ----
     document.getElementById('newMatchBtn').click();
     chk('new match returns to picker', fsPick.classList.contains('active'));
-    chk('new match clears lineup', lineup.length === 0);
+    chk('new match draws a fresh four', lineup.length === 4);
+    chk('new match draw has no repeats', new Set(lineup.map(function(b){ return b.tag; })).size === 4);
     chk('new match zeroes scores', teams[0].score === 0 && teams[1].score === 0);
     chk('new match resets round', roundIdx === 0);
-    chk('new match disables start', startBtn().disabled === true);
+    chk('new match leaves start ready', startBtn().disabled === false);
 
-    // ---- an immediate 300 skips sudden death ----
-    picks()[0].click(); picks()[1].click(); picks()[2].click(); picks()[3].click();
+    // ---- end-match-early path ----
+    fixLineup();
     startBtn().click();
     faceoff(0);
     document.getElementById('playBtn').click();

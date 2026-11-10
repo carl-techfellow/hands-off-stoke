@@ -303,6 +303,14 @@
   .lslot .ltxt{font-size:13px;font-weight:700;color:var(--paper)}
   .lslot:not(.filled) .ltxt{color:var(--grey-dark)}
   .boardpick.used{border-color:var(--green);opacity:.55}
+  .lhint{font-size:13.5px;line-height:1.5;color:var(--grey);text-align:center;
+       max-width:min(94vw,34em);margin:-.4em 0 1.1em}
+  .swapbox{width:100%;max-width:min(94vw,46em);margin-top:1.4em}
+  .swapbox summary{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+       text-transform:uppercase;font-weight:700;color:var(--grey);cursor:pointer;
+       text-align:center;padding:.5em;border-top:1px solid #3A3240}
+  .swapbox summary:hover{color:var(--paper)}
+  .swapbox[open] summary{color:#FF8FA8;margin-bottom:1em}
 
   /* fast money */
   .fastgrid{display:flex;flex-direction:column;gap:.7em;width:100%;
@@ -409,16 +417,24 @@
     <!-- ---------- SETUP: build the lineup ---------- -->
     <section class="fscreen active" id="fsPick">
       <div class="big-emoji">&#128203;</div>
-      <h2 class="fhead">Build the match</h2>
-      <p class="fsub">Pick <b>four boards</b> in the order you want to play them. Rounds 1
-      and 2 are single points, round 3 doubles, round 4 triples. First team to
+      <h2 class="fhead">Tonight&rsquo;s match</h2>
+      <p class="fsub">Four categories, drawn at random and locked to their rounds.
+      Rounds 1 and 2 are single points, round 3 doubles, round 4 triples. First team to
       <b>300</b> wins.</p>
-      <div class="boardlist" id="boardList"></div>
       <div class="lineup" id="lineup"></div>
+      <p class="lhint" id="lineupHint">Reshuffle for a different draw, or tap a category
+      below to swap one out.</p>
       <div class="fbtns">
-        <button class="fbtn" id="clearLineupBtn">Clear</button>
-        <button class="fbtn go" id="startMatchBtn" disabled>Start the match</button>
+        <button class="fbtn" id="shuffleLineupBtn">&#127922; Reshuffle</button>
+        <button class="fbtn go" id="startMatchBtn">Start the match</button>
       </div>
+      <details class="swapbox">
+        <summary>Swap a category by hand</summary>
+        <div class="boardlist" id="boardList"></div>
+        <div class="fbtns">
+          <button class="fbtn" id="clearLineupBtn">Clear all four</button>
+        </div>
+      </details>
     </section>
 
     <!-- ---------- THE ROUND ---------- -->
@@ -1249,6 +1265,17 @@
   }
 
   // ---------------- setup: build the lineup ----------------
+  // Categories are drawn for the room rather than chosen by the host - nobody gets
+  // to park an easy board on the triple round.
+  function drawLineup(){
+    var pool = BOARDS.slice();
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+    }
+    lineup = pool.slice(0, 4);
+  }
+
   function paintLineup(){
     lineupEl.innerHTML = '';
     for (var i = 0; i < 4; i++) {
@@ -1266,6 +1293,10 @@
       lineupEl.appendChild(d);
     }
     document.getElementById('startMatchBtn').disabled = (lineup.length < 4);
+    var hint = document.getElementById('lineupHint');
+    if (hint) hint.textContent = (lineup.length < 4)
+      ? ('Pick ' + (4 - lineup.length) + ' more below, or reshuffle for a fresh draw.')
+      : 'Reshuffle for a different draw, or swap one out by hand below.';
     [].slice.call(boardList.querySelectorAll('.boardpick')).forEach(function(b){
       var used = lineup.indexOf(BOARDS[+b.getAttribute('data-b')]) > -1;
       b.classList.toggle('used', used);
@@ -1292,6 +1323,10 @@
 
   document.getElementById('clearLineupBtn').addEventListener('click', function(){
     lineup = []; paintLineup();
+  });
+
+  document.getElementById('shuffleLineupBtn').addEventListener('click', function(){
+    drawLineup(); paintLineup(); beep(620, 0.18);
   });
 
   document.getElementById('startMatchBtn').addEventListener('click', function(){
@@ -1730,13 +1765,14 @@
   });
 
   document.getElementById('newMatchBtn').addEventListener('click', function(){
-    lineup = []; roundIdx = 0; bank = 0; strikes = 0;
+    drawLineup(); roundIdx = 0; bank = 0; strikes = 0;
     teams[0].score = 0; teams[1].score = 0;
     teams.forEach(function(t){ t.r2 = null; t.r2text = ''; });
     paintLineup();
     fshow('pick');
   });
 
+  drawLineup();
   paintLineup();
   paintTeams();
 

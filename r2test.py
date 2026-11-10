@@ -12,6 +12,8 @@ HARNESS = r"""
   function slots(){ return boardGrid.querySelectorAll('.slot'); }
   try {
     document.getElementById('modeFeud').click();
+    // the app draws categories at random; force a known order to assert on them
+    document.getElementById('clearLineupBtn').click();
     picks()[0].click(); picks()[1].click(); picks()[2].click(); picks()[3].click();
     document.getElementById('startMatchBtn').click();
 
@@ -98,6 +100,7 @@ HARNESS = r"""
     // a new match wipes the teaching round too
     document.getElementById('newMatchBtn').click();
     chk('new match back to picker', fsPick.classList.contains('active'));
+    chk('new match redraws the categories', lineup.length === 4);
     chk('new match zeroes scores', teams[0].score === 0 && teams[1].score === 0);
     chk('new match clears r2 verdicts', !teams[0].r2 && !teams[1].r2);
 
