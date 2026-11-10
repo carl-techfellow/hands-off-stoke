@@ -253,8 +253,22 @@
   @media (prefers-reduced-motion:reduce){.strikeflash.show{animation:none;opacity:.9}}
 
   /* teams */
-  .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6em;
+  .teams{display:grid;grid-template-columns:1fr 1fr;gap:.9em;
        width:100%;max-width:min(94vw,46em);margin-bottom:1.2em}
+  .bank{font-family:var(--mono);font-size:clamp(14px,2.2vw,17px);font-weight:700;
+       letter-spacing:.1em;text-transform:uppercase;text-align:center;
+       background:var(--ink-soft);border:2px solid #3A3240;border-radius:999px;
+       padding:.5em 1.4em;margin-bottom:1em;color:var(--grey)}
+  .bank b{color:var(--paper);font-size:1.5em;vertical-align:-.08em;margin-left:.3em}
+  .steal{background:var(--red);color:#fff;border-radius:12px;padding:.8em 1.2em;
+       font-weight:900;text-transform:uppercase;letter-spacing:.06em;text-align:center;
+       font-size:clamp(14px,2.4vw,18px);margin-bottom:1em;max-width:min(94vw,46em);
+       width:100%}
+  .steal[hidden]{display:none}
+  .team.control{border-color:var(--green);background:rgba(47,158,88,.14)}
+  .team .tctl{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+       text-transform:uppercase;font-weight:700;color:var(--green);display:block;
+       margin-top:.2em;min-height:1.2em}
   .team{background:var(--ink-soft);border:2px solid #3A3240;border-radius:12px;
        padding:.7em .8em;cursor:pointer;text-align:center;transition:border-color .15s ease}
   .team.active{border-color:var(--green);background:rgba(47,158,88,.14)}
@@ -353,7 +367,7 @@
     <button class="mode" id="modeFeud" type="button">
       <span class="mi">📋</span>
       <span class="mname">Prompt Feud</span>
-      <span class="mmeta">Whole room · 4 teams · 15 min</span>
+      <span class="mmeta">Whole room · 2 teams · 15 min</span>
       <span class="mdesc">We asked a computer the same question over and over. Guess its
       most common answers — then write a prompt that escapes them.</span>
     </button>
@@ -383,12 +397,17 @@
 
       <div class="board" id="boardGrid"></div>
 
-      <p class="turnhint" id="turnHint">Tap a team to put them on the clock</p>
+      <div class="bank" id="bankChip">Bank <b>0</b></div>
+      <div class="steal" id="stealBanner" hidden></div>
+
+      <p class="turnhint" id="turnHint">Tap a team to give them control</p>
       <div class="teams" id="teamRow"></div>
 
       <div class="fbtns">
         <button class="fbtn danger" id="strikeBtn">✕ Strike</button>
-        <button class="fbtn" id="nextTeamBtn">→ Next team</button>
+        <button class="fbtn danger" id="stealFailBtn" hidden>Steal failed</button>
+        <button class="fbtn go" id="awardBtn">Award bank</button>
+        <button class="fbtn" id="nextTeamBtn">⇄ Switch control</button>
         <button class="fbtn" id="revealAllBtn">Reveal all</button>
         <button class="fbtn go" id="toRound2Btn">Round 2 &rarr;</button>
         <button class="fbtn" id="newBoardBtn">Pick a new board</button>
@@ -1089,11 +1108,11 @@
   var turnHint = document.getElementById('turnHint');
   var strikeFlash = document.getElementById('strikeFlash');
 
-  var teams = [
-    { name: "Team 1", score: 0 }, { name: "Team 2", score: 0 },
-    { name: "Team 3", score: 0 }, { name: "Team 4", score: 0 }
-  ];
+  var teams = [ { name: "Team 1", score: 0 }, { name: "Team 2", score: 0 } ];
+  // activeTeam == the team in control. bank holds this round's points until
+  // someone wins them - that's what makes the steal worth anything.
   var activeTeam = 0, strikes = 0, currentBoard = null;
+  var bank = 0, stealMode = false;
 
   var fsRound2 = document.getElementById('fsRound2');
   var R2_POINTS = 25;
@@ -1104,15 +1123,40 @@
     fsRound2.classList.toggle('active', which === 'round2');
   }
 
+  function tname(i){ return teams[i].name || ('Team ' + (i + 1)); }
+
   function updateHint(){
-    turnHint.textContent = 'On the clock: ' + (teams[activeTeam].name || 'Team ' + (activeTeam + 1));
+    turnHint.textContent = stealMode
+      ? 'Steal attempt: ' + tname(1 - activeTeam)
+      : 'In control: ' + tname(activeTeam);
+  }
+
+  function paintBank(){
+    document.getElementById('bankChip').innerHTML = 'Bank <b>' + bank + '</b>';
+    var sb = document.getElementById('stealBanner');
+    sb.hidden = !stealMode;
+    if (stealMode) sb.textContent = 'Steal! ' + tname(1 - activeTeam) +
+      ' gets one guess for ' + bank + ' points';
+    document.getElementById('stealFailBtn').hidden = !stealMode;
+    document.getElementById('strikeBtn').hidden = stealMode;
+  }
+
+  function awardBank(to){
+    teams[to].score += bank;
+    bank = 0;
+    strikes = 0;
+    stealMode = false;
+    paintStrikes();
+    paintBank();
+    paintTeams();
+    beep(900, 0.4);
   }
 
   function paintTeams(){
     teamRow.innerHTML = '';
     teams.forEach(function(t, i){
       var d = document.createElement('div');
-      d.className = 'team' + (i === activeTeam ? ' active' : '');
+      d.className = 'team' + (i === activeTeam ? ' control' : '');
       var inp = document.createElement('input');
       inp.className = 'tname';
       inp.value = t.name;
@@ -1122,9 +1166,15 @@
       var sc = document.createElement('div');
       sc.className = 'tscore';
       sc.textContent = t.score;
+      var ctl = document.createElement('span');
+      ctl.className = 'tctl';
+      ctl.textContent = (i === activeTeam ? 'in control' : '');
       d.appendChild(inp);
       d.appendChild(sc);
-      d.addEventListener('click', function(){ activeTeam = i; paintTeams(); });
+      d.appendChild(ctl);
+      d.addEventListener('click', function(){
+        activeTeam = i; stealMode = false; paintBank(); paintTeams();
+      });
       teamRow.appendChild(d);
     });
     updateHint();
@@ -1141,15 +1191,24 @@
     btn.classList.add('revealed');
     btn.querySelector('.stext').textContent = currentBoard.answers[i];
     btn.querySelector('.spts').textContent = POINTS[i];
-    teams[activeTeam].score += POINTS[i];
-    paintTeams();
+    bank += POINTS[i];
     beep(760, 0.25);
+    if (stealMode) {
+      // a successful steal takes the whole bank
+      awardBank(1 - activeTeam);
+      return;
+    }
+    paintBank();
+    paintTeams();
   }
 
   function loadBoard(b){
     currentBoard = b;
     strikes = 0;
+    bank = 0;
+    stealMode = false;
     paintStrikes();
+    paintBank();
     askedText.textContent = b.asked;
     boardGrid.innerHTML = '';
     b.answers.forEach(function(ans, i){
@@ -1184,6 +1243,7 @@
   });
 
   document.getElementById('strikeBtn').addEventListener('click', function(){
+    if (stealMode) return;
     if (strikes < 3) strikes++;
     paintStrikes();
     strikeFlash.classList.remove('show');
@@ -1191,14 +1251,26 @@
     strikeFlash.classList.add('show');
     setTimeout(function(){ strikeFlash.classList.remove('show'); }, 750);
     beep(180, 0.45);
-    activeTeam = (activeTeam + 1) % teams.length;
+    if (strikes >= 3) stealMode = true;
+    paintBank();
     paintTeams();
   });
 
+  document.getElementById('stealFailBtn').addEventListener('click', function(){
+    if (!stealMode) return;
+    awardBank(activeTeam);   // steal missed, control keeps the bank
+  });
+
+  document.getElementById('awardBtn').addEventListener('click', function(){
+    awardBank(stealMode ? activeTeam : activeTeam);
+  });
+
   document.getElementById('nextTeamBtn').addEventListener('click', function(){
-    activeTeam = (activeTeam + 1) % teams.length;
+    activeTeam = 1 - activeTeam;
     strikes = 0;
+    stealMode = false;
     paintStrikes();
+    paintBank();
     paintTeams();
   });
 
@@ -1215,8 +1287,8 @@
   });
 
   document.getElementById('newBoardBtn').addEventListener('click', function(){
-    strikes = 0;
-    paintStrikes();
+    strikes = 0; bank = 0; stealMode = false;
+    paintStrikes(); paintBank();
     fshow('pick');
   });
 
@@ -1334,6 +1406,8 @@
 
   function enterRound2(){
     if (!currentBoard) return;
+    stealMode = false;
+    paintBank();
     document.getElementById('revealAllBtn').click();
     document.getElementById('r2Asked').textContent = currentBoard.asked;
     avoidList.innerHTML = '';
@@ -1358,7 +1432,8 @@
   document.getElementById('toRound2Btn').addEventListener('click', enterRound2);
   document.getElementById('backToBoardBtn').addEventListener('click', function(){ fshow('board'); });
   document.getElementById('r2NewBoardBtn').addEventListener('click', function(){
-    strikes = 0; paintStrikes(); fshow('pick');
+    strikes = 0; bank = 0; stealMode = false;
+    paintStrikes(); paintBank(); fshow('pick');
   });
 
   document.getElementById('finalScoreBtn').addEventListener('click', function(){
@@ -1372,6 +1447,7 @@
   });
 
   paintTeams();
+  paintBank();
 
   // ---------- mode switching ----------
   var modePicker = document.getElementById('modePicker');

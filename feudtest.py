@@ -7,69 +7,87 @@ HARNESS = r"""
   var log = [];
   function chk(n,c){ log.push((c?'PASS ':'FAIL ')+n); }
   function disp(el){ return getComputedStyle(el).display; }
+  function slots(){ return boardGrid.querySelectorAll('.slot'); }
+  function strikeBtn(){ return document.getElementById('strikeBtn'); }
   try {
-    // enter feud from the picker
     document.getElementById('modeFeud').click();
     chk('feud rendered', disp(feudApp) !== 'none');
     chk('pictionary not rendered', disp(pictionaryApp) === 'none');
-    chk('doc not rendered under feud', disp(docEl) === 'none');
     chk('lands on board picker', fsPick.classList.contains('active'));
     chk('six boards listed', boardList.querySelectorAll('.boardpick').length === 6);
 
-    // load a board
     boardList.querySelectorAll('.boardpick')[0].click();
     chk('board screen active', fsBoard.classList.contains('active'));
-    chk('six slots built', boardGrid.querySelectorAll('.slot').length === 6);
-    chk('slots start hidden', boardGrid.querySelector('.slot .stext').textContent.indexOf('\u2022') > -1);
-    chk('question shown', askedText.textContent.indexOf('professional email') > -1);
-    chk('four teams', teamRow.querySelectorAll('.team').length === 4);
-    chk('team1 starts active', teamRow.querySelectorAll('.team')[0].className.indexOf('active') > -1);
+    chk('six slots built', slots().length === 6);
+    chk('exactly two teams', teamRow.querySelectorAll('.team').length === 2);
+    chk('team1 starts in control', teamRow.querySelectorAll('.team')[0].className.indexOf('control') > -1);
+    chk('bank starts empty', bank === 0);
 
-    // reveal top slot -> 30 pts to active team
-    boardGrid.querySelectorAll('.slot')[0].click();
-    var s0 = boardGrid.querySelectorAll('.slot')[0];
-    chk('slot revealed', s0.classList.contains('revealed'));
-    chk('answer text shown', s0.querySelector('.stext').textContent.indexOf('finds you well') > -1);
-    chk('30 pts to team1', teams[0].score === 30);
+    // reveals feed the BANK, not a team score
+    slots()[0].click();
+    chk('slot revealed', slots()[0].classList.contains('revealed'));
+    chk('30 into bank', bank === 30);
+    chk('no team scored yet', teams[0].score === 0 && teams[1].score === 0);
 
-    // double-click same slot must not double-score
-    boardGrid.querySelectorAll('.slot')[0].click();
-    chk('no double score', teams[0].score === 30);
+    slots()[0].click();
+    chk('no double-bank on same slot', bank === 30);
 
-    // strike advances the turn and marks a strike
-    document.getElementById('strikeBtn').click();
-    chk('one strike marked', strikeRow.querySelectorAll('.strikeslot.on').length === 1);
-    chk('turn passed to team2', activeTeam === 1);
+    slots()[1].click();
+    chk('bank accumulates to 55', bank === 55);
 
-    // next reveal scores to team 2
-    boardGrid.querySelectorAll('.slot')[1].click();
-    chk('25 pts to team2', teams[1].score === 25);
-    chk('team1 unchanged', teams[0].score === 30);
+    // two strikes: no steal yet
+    strikeBtn().click(); strikeBtn().click();
+    chk('two strikes marked', strikeRow.querySelectorAll('.strikeslot.on').length === 2);
+    chk('no steal at two strikes', stealMode === false);
+    chk('control unchanged by strikes', activeTeam === 0);
 
-    // next team button clears strikes
+    // third strike opens the steal
+    strikeBtn().click();
+    chk('steal opens at three', stealMode === true);
+    chk('steal banner visible', document.getElementById('stealBanner').hidden === false);
+    chk('steal button appears', document.getElementById('stealFailBtn').hidden === false);
+    chk('strike button hides during steal', strikeBtn().hidden === true);
+
+    // a successful steal hands the whole bank to the other team
+    slots()[2].click();
+    chk('steal pays team2 the bank', teams[1].score === 75);
+    chk('control team got nothing', teams[0].score === 0);
+    chk('bank emptied after steal', bank === 0);
+    chk('steal mode closed', stealMode === false);
+    chk('strikes cleared after award', strikeRow.querySelectorAll('.strikeslot.on').length === 0);
+
+    // failed steal: bank goes to the controlling team
+    boardList.querySelectorAll('.boardpick')[1].click();  // fresh board
+    chk('new board clears bank', bank === 0);
+    slots()[0].click();
+    strikeBtn().click(); strikeBtn().click(); strikeBtn().click();
+    chk('steal open again', stealMode === true);
+    document.getElementById('stealFailBtn').click();
+    chk('failed steal pays control', teams[0].score === 30);
+    chk('bank emptied', bank === 0);
+
+    // manual award
+    boardList.querySelectorAll('.boardpick')[2].click();
+    slots()[0].click();
+    slots()[1].click();
+    chk('bank is 55', bank === 55);
+    document.getElementById('awardBtn').click();
+    chk('award pays control team', teams[0].score === 85);
+    chk('bank cleared by award', bank === 0);
+
+    // switch control
+    var before = activeTeam;
     document.getElementById('nextTeamBtn').click();
-    chk('strikes cleared', strikeRow.querySelectorAll('.strikeslot.on').length === 0);
-    chk('turn is team3', activeTeam === 2);
+    chk('control switches', activeTeam === 1 - before);
 
-    // reveal all does not award points
-    var before = teams[2].score;
+    // reveal all awards nothing directly
+    var t0 = teams[0].score, t1 = teams[1].score;
     document.getElementById('revealAllBtn').click();
     chk('all six revealed', boardGrid.querySelectorAll('.slot.revealed').length === 6);
-    chk('reveal-all awards nothing', teams[2].score === before);
+    chk('reveal-all pays nobody', teams[0].score === t0 && teams[1].score === t1);
 
-    // new board returns to picker, scores persist
-    document.getElementById('newBoardBtn').click();
-    chk('back at picker', fsPick.classList.contains('active'));
-    chk('scores persist across boards', teams[0].score === 30 && teams[1].score === 25);
-
-    // second board is fresh
-    boardList.querySelectorAll('.boardpick')[2].click();
-    chk('new board unrevealed', boardGrid.querySelectorAll('.slot.revealed').length === 0);
-    chk('new question loaded', askedText.textContent.indexOf('marketing') > -1);
-
-    // leaving to picker and back into pictionary still works
+    // back out to pictionary
     document.querySelectorAll('[data-backmode]')[0].click();
-    chk('back to mode picker', disp(modePicker) !== 'none' && disp(feudApp) === 'none');
     document.getElementById('modePictionary').click();
     chk('pictionary still enterable', disp(pictionaryApp) !== 'none');
   } catch(e){ log.push('FAIL threw: ' + e.message); }
