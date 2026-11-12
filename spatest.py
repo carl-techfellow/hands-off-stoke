@@ -65,6 +65,13 @@ HARNESS = r"""
     chk('stepper built', steps().length === 7);
     chk('stepper starts on the draw', nowStep() === 'Draw');
     chk('nothing done yet', doneCount() === 0);
+
+    var nav = document.getElementById('sideNav');
+    function navBtn(g){ return nav.querySelector('[data-go="' + g + '"]'); }
+    chk('sidebar nav built with four stops', nav.querySelectorAll('button').length === 4);
+    chk('lineup is the current stop', navBtn('lineup').classList.contains('on'));
+    chk('match stops locked before a match',
+        navBtn('board').disabled && navBtn('fast').disabled && navBtn('beat').disabled);
     chk('lineup step says start the match', coach().toLowerCase().indexOf('start the match') > -1);
 
     function firstAtLevel(l){
@@ -98,6 +105,9 @@ HARNESS = r"""
     chk('the board has its own route', hash() === '#/feud/board');
     chk('stepper moves to round 1', nowStep() === 'R1');
     chk('the draw is marked done', doneCount() === 1);
+    chk('match stops unlock once a match starts',
+        !navBtn('board').disabled && !navBtn('fast').disabled && !navBtn('beat').disabled);
+    chk('the board is the current stop', navBtn('board').classList.contains('on'));
     chk('face-off step explains the buzz', coach().toLowerCase().indexOf('buzz') > -1);
     chk('round 1 face-off frames it as a warm-up',
         coach().toLowerCase().indexOf('warm-up') > -1);
@@ -152,6 +162,32 @@ HARNESS = r"""
         coach().indexOf('20-second') > -1 && coach().indexOf('25 seconds') > -1);
     chk('fast money step names the target', coach().indexOf('200 combined') > -1);
 
+    // ---------------- sidebar jumps ----------------
+    chk('fast money is the current stop', navBtn('fast').classList.contains('on'));
+    var fmFirstQ = fastSet[0].q;
+    var fopt0 = document.getElementById('fastGrid').querySelectorAll('.fastrow')[0]
+                 .querySelectorAll('.fopt')[0];
+    fopt0.click();   // player 1 banks the top answer before we wander off
+    var fmScore = fastScore(0);
+
+    navBtn('board').click();
+    chk('nav jumps back to the board', fsBoard.classList.contains('active'));
+    chk('the jump routes the url', hash() === '#/feud/board');
+    chk('the board becomes the current stop', navBtn('board').classList.contains('on'));
+
+    navBtn('fast').click();
+    chk('nav returns to fast money', fsFast.classList.contains('active'));
+    chk('returning does not redraw the questions', fastSet[0].q === fmFirstQ);
+    chk('returning keeps the entries', fastScore(0) === fmScore && fmScore > 0);
+
+    navBtn('beat').click();
+    chk('nav reaches beat the board', fsRound2.classList.contains('active'));
+    chk('the jump arrives at a set-up screen', avoidList.querySelectorAll('.ac').length === 6);
+    chk('beat the board routes its url', hash() === '#/feud/beat-the-board');
+    chk('beat the board becomes the current stop', navBtn('beat').classList.contains('on'));
+
+    navBtn('fast').click();   // back where the scripted flow expects to be
+
     document.getElementById('toRound2Btn').click();
     chk('beat the board has a route', hash() === '#/feud/beat-the-board');
     chk('beat the board is the last step', nowStep() === 'Last word');
@@ -166,6 +202,9 @@ HARNESS = r"""
     document.getElementById('newMatchBtn').click();
     chk('a new match returns to the lineup route', hash() === '#/feud/lineup');
     chk('a new match resets the stepper', nowStep() === 'Draw');
+    chk('a new match locks the match stops again',
+        navBtn('board').disabled && navBtn('fast').disabled && navBtn('beat').disabled);
+    chk('the lineup is the current stop again', navBtn('lineup').classList.contains('on'));
 
     // ---------------- deep links ----------------
     // a live-match screen with no match running must not be linkable
@@ -240,6 +279,20 @@ RESP = r"""
   try {
     log.push('INFO viewport=' + W);
     document.getElementById('modeFeud').click();
+
+    var grid = document.querySelector('#feudApp .hostgrid');
+    var sidebarOn = getComputedStyle(grid).display === 'grid';
+    chk('sidebar layout engages only at desktop widths', sidebarOn === (W >= 920));
+    if (sidebarOn) {
+      var side = document.querySelector('#feudApp .hostside');
+      chk('sidebar holds a readable column', side.offsetWidth >= 220 && side.offsetWidth <= 310);
+      chk('the stage keeps most of the screen', side.offsetWidth < W / 2);
+      chk('the timeline runs vertically in the sidebar',
+          getComputedStyle(document.getElementById('stepper')).flexDirection === 'column');
+    } else {
+      chk('narrow screens keep the stacked-top layout',
+          getComputedStyle(document.getElementById('stepper')).flexDirection === 'row');
+    }
     overflow('lineup');
     document.querySelector('.swapbox').open = true;
     overflow('lineup+swap');

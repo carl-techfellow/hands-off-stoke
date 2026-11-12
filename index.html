@@ -239,6 +239,37 @@
     .coach b{padding-top:0}
   }
 
+  /* ---- the host sidebar ----
+     Narrow screens keep the stacked-top layout exactly as it was; at projector
+     widths the same elements move into a pinned left column so the host's eyes
+     and mouse live in one place. */
+  .hostgrid{flex:1;display:flex;flex-direction:column;min-height:0}
+  .stage{flex:1;display:flex;flex-direction:column;min-width:0}
+  .sidenav{display:flex;flex-wrap:wrap;gap:.4em;padding:.7em max(2.4vw,.8em) 0}
+  .sidenav button{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+       text-transform:uppercase;font-weight:700;color:var(--grey);background:var(--ink-soft);
+       border:1.5px solid #2C2632;border-radius:999px;padding:.5em .85em;cursor:pointer;
+       text-align:left}
+  .sidenav button:hover:not(:disabled){color:var(--paper);border-color:var(--grey)}
+  .sidenav button.on{color:#fff;background:var(--red);border-color:var(--red)}
+  .sidenav button:disabled{opacity:.35;cursor:not-allowed}
+  @media (min-width:920px){
+    #feudApp .hostgrid{display:grid;grid-template-columns:clamp(230px,24vw,300px) minmax(0,1fr)}
+    .hostside{position:sticky;top:0;align-self:start;height:100svh;overflow-y:auto;
+         display:flex;flex-direction:column;gap:.9em;background:var(--ink-soft);
+         border-right:1px solid #3A3240;padding-bottom:1.2em}
+    .hostside .appbar{position:static;flex-wrap:wrap;background:transparent;
+         border-bottom:1px solid #3A3240;padding:.9em .9em .8em}
+    .hostside .abtitle{order:-1;flex:1 1 100%}
+    .hostside .stepper{flex-direction:column;align-items:stretch;gap:.35em;
+         padding:0 .9em;overflow:visible}
+    .hostside .steptick{display:none}
+    .hostside .step{text-align:left}
+    .hostside .coach{margin:0 .9em}
+    .hostside .sidenav{flex-direction:column;padding:0 .9em;margin-top:auto}
+    .hostside .sidenav button{width:100%}
+  }
+
   /* ================= PROMPT FEUD ================= */
   .feud-wrap{flex:1;display:flex;flex-direction:column;align-items:center;
        padding:3vh 4vw 10vh;gap:0}
@@ -522,6 +553,8 @@
 </div>
 
 <div class="app" id="feudApp" hidden>
+ <div class="hostgrid">
+ <aside class="hostside">
   <div class="appbar">
     <button class="abtn" data-backmode type="button">&#8592; Games</button>
     <span class="abtitle">Prompt Feud</span>
@@ -531,6 +564,14 @@
   </div>
   <div class="stepper" id="stepper"></div>
   <div class="coach" id="coach"><b>Next</b><span id="coachText">&mdash;</span></div>
+  <nav class="sidenav" id="sideNav" aria-label="Match navigation">
+    <button type="button" data-go="lineup">1 &middot; Lineup</button>
+    <button type="button" data-go="board">2 &middot; The board</button>
+    <button type="button" data-go="fast">3 &middot; Fast Money</button>
+    <button type="button" data-go="beat">4 &middot; Beat the Board</button>
+  </nav>
+ </aside>
+ <div class="stage">
   <div class="feud-wrap">
 
     <!-- ---------- SETUP: build the lineup ---------- -->
@@ -706,6 +747,8 @@
     </section>
 
   </div>
+ </div>
+ </div>
 </div>
 
 <div class="app" id="pictionaryApp" hidden>
@@ -1407,6 +1450,8 @@
   var faceoffWinner = null; // who won the face-off, pending play/pass
   var phase = 'faceoff';    // faceoff | playpass | play | steal | over
   var bank = 0, strikes = 0, currentBoard = null;
+  // one-time-setup latches: jumping back to a phase must not re-run its setup
+  var fastReady = false, r2Ready = false;
   var R2_POINTS = FEUD.R2_POINTS;
 
   function tname(i){ return teams[i].name || ('Team ' + (i + 1)); }
@@ -1524,8 +1569,38 @@
     fsSudden.classList.toggle('active', which === 'sudden');
     fsFast.classList.toggle('active', which === 'fast');
     fsRound2.classList.toggle('active', which === 'round2');
+    paintSideNav(which);
     route('feud', which);
   }
+
+  function paintSideNav(which){
+    var map = { pick: 'lineup', board: 'board', fast: 'fast', round2: 'beat' };
+    [].slice.call(document.querySelectorAll('#sideNav button')).forEach(function(b){
+      var g = b.getAttribute('data-go');
+      b.classList.toggle('on', map[which] === g);
+      b.disabled = (g !== 'lineup' && !currentBoard);
+    });
+  }
+
+  // Every way into a phase goes through here, so a jump obeys the same setup
+  // guards as normal play: first visit runs the setup, a return just shows it.
+  function goScreen(want){
+    if (want !== 'pick' && !currentBoard) want = 'pick';
+    if (want === 'fast') { if (fastReady) fshow('fast'); else goFastMoney(); }
+    else if (want === 'round2') { if (r2Ready) fshow('round2'); else enterRound2(); }
+    else if (want === 'sudden' && !sdBoard) { want = 'board'; fshow('board'); }
+    else fshow(want);
+    return want;
+  }
+
+  document.getElementById('sideNav').addEventListener('click', function(e){
+    var g = e.target.getAttribute && e.target.getAttribute('data-go');
+    if (!g || e.target.disabled) return;
+    if (g === 'lineup') { fshow('pick'); paintLineup(); }
+    else if (g === 'board') goScreen('board');
+    else if (g === 'fast') goScreen('fast');
+    else if (g === 'beat') goScreen('round2');
+  });
 
   // ---------------- setup: build the lineup ----------------
   // Categories are drawn for the room rather than chosen by the host - nobody gets
@@ -1636,6 +1711,7 @@
   document.getElementById('startMatchBtn').addEventListener('click', function(){
     teams[0].score = 0; teams[1].score = 0;
     roundIdx = 0; control = 0;
+    fastReady = false; r2Ready = false;
     logEvent('match-start', {
       detail: lineup.map(function(b, i){
         return 'R' + (i + 1) + ' x' + MULTIPLIERS[i] + ' ' + b.tag;
@@ -2071,6 +2147,7 @@
 
   function goFastMoney(){
     phase = 'over';
+    fastReady = true;
     fastPlayer = 0;
     fastPicks = [[], []];
     drawFastSet();
@@ -2226,8 +2303,9 @@
     }, 1000);
   });
 
-  document.getElementById('toRound2Btn').addEventListener('click', function(){
+  function enterRound2(){
     if (!currentBoard) currentBoard = lineup[0] || BOARDS[0];
+    r2Ready = true;
     document.getElementById('r2Asked').textContent = currentBoard.asked;
     avoidList.innerHTML = '';
     currentBoard.answers.forEach(function(a){
@@ -2250,7 +2328,8 @@
              'and rule on it.');
     paintBarScore();
     fshow('round2');
-  });
+  }
+  document.getElementById('toRound2Btn').addEventListener('click', enterRound2);
 
   document.getElementById('finalScoreBtn').addEventListener('click', function(){
     logEvent('final', { detail: tname(0) + ' ' + teams[0].score + ' - ' +
@@ -2273,6 +2352,7 @@
     teams[0].score = 0; teams[1].score = 0;
     teams.forEach(function(t){ t.r2 = null; t.r2text = ''; });
     currentBoard = null;
+    fastReady = false; r2Ready = false;
     fshow('pick');
     paintLineup();
   });
@@ -2361,9 +2441,7 @@
     routing = true;
     try {
       if (parts[0] === 'feud') {
-        var want = FEUD_SCREEN[parts[1]] || 'pick';
-        if (want !== 'pick' && !currentBoard) want = 'pick';
-        fshow(want);
+        var want = goScreen(FEUD_SCREEN[parts[1]] || 'pick');
         showMode('feud', want);
         landedMode = 'feud'; landedSub = want;
       } else if (parts[0] === 'pictionary') {
