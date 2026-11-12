@@ -115,7 +115,22 @@ HARNESS = r"""
     chk('bar score starts level',
         document.getElementById('abScore').textContent.replace(/\s/g, '') === '0\u20130');
 
+    // ---- the pinned action footer ----
+    var abar = document.getElementById('actionBar');
+    chk('the board controls live in a footer bar', abar !== null);
+    chk('the footer is pinned to the viewport bottom',
+        getComputedStyle(abar).position === 'sticky');
+    chk('the footer holds every action group',
+        abar.contains(document.getElementById('faceoffBtns')) &&
+        abar.contains(document.getElementById('playBtns')) &&
+        abar.contains(document.getElementById('abandonBtn')));
+    function barLive(){
+      return [].slice.call(abar.querySelectorAll('.fbtns')).some(function(g){ return !g.hidden; });
+    }
+    chk('the footer is never empty during the face-off', barLive());
+
     document.getElementById('fo1Btn').click();
+    chk('the footer is never empty during play-or-pass', barLive());
     chk('play-or-pass step asks the question', coach().toLowerCase().indexOf('pass') > -1);
     chk('play-or-pass step names the winner', coach().indexOf('Team 1') > -1);
 
@@ -123,6 +138,8 @@ HARNESS = r"""
     chk('play step points at the guess box', coach().toLowerCase().indexOf('box') > -1);
     chk('play step mentions keywords', coach().toLowerCase().indexOf('keyword') > -1);
     chk('play step warns about three misses', coach().indexOf('Three misses') > -1);
+
+    chk('the footer is never empty during play', barLive());
 
     var gi = document.getElementById('guessInput');
     function guess(t){ gi.value = t; document.getElementById('guessBtn').click(); }

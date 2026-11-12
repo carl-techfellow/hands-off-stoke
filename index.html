@@ -244,6 +244,21 @@
      widths the same elements move into a pinned left column so the host's eyes
      and mouse live in one place. */
   .hostgrid{flex:1;display:flex;flex-direction:column;min-height:0}
+  /* the board's controls ride the bottom of the viewport instead of the bottom
+     of the scroll - the host never scrolls to reach a strike or an award */
+  #fsBoard.active{flex:1}
+  .actionbar{position:sticky;bottom:0;z-index:40;margin-top:auto;
+       width:calc(100% + 8vw);margin-left:-4vw;margin-right:-4vw;margin-bottom:-10vh;
+       background:rgba(22,18,23,.94);border-top:1px solid #3A3240;
+       padding:.75em 4vw calc(.9em + env(safe-area-inset-bottom,0px));
+       display:flex;flex-direction:column;gap:.55em;align-items:center}
+  @supports (backdrop-filter:blur(6px)){
+    .actionbar{background:rgba(22,18,23,.78);backdrop-filter:blur(8px)}
+  }
+  .actionbar .fbtns{margin:0}
+  .actionbar .fbtns[hidden]{display:none}
+  .fbtn.quiet{font-size:12px;padding:.45em 1em;opacity:.7}
+  .fbtn.quiet:hover{opacity:1}
   .stage{flex:1;display:flex;flex-direction:column;min-width:0}
   .sidenav{display:flex;flex-wrap:wrap;gap:.4em;padding:.7em max(2.4vw,.8em) 0}
   .sidenav button{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
@@ -650,25 +665,27 @@
       <p class="turnhint" id="turnHint">&mdash;</p>
       <div class="teams" id="teamRow"></div>
 
-      <div class="fbtns" id="faceoffBtns" hidden>
-        <button class="fbtn go" id="fo1Btn">Team 1 won the face-off</button>
-        <button class="fbtn go" id="fo2Btn">Team 2 won the face-off</button>
-      </div>
+      <div class="actionbar" id="actionBar">
+        <div class="fbtns" id="faceoffBtns" hidden>
+          <button class="fbtn go" id="fo1Btn">Team 1 won the face-off</button>
+          <button class="fbtn go" id="fo2Btn">Team 2 won the face-off</button>
+        </div>
 
-      <div class="fbtns" id="playpassBtns" hidden>
-        <button class="fbtn go" id="playBtn">Play it</button>
-        <button class="fbtn" id="passBtn">Pass to the other team</button>
-      </div>
+        <div class="fbtns" id="playpassBtns" hidden>
+          <button class="fbtn go" id="playBtn">Play it</button>
+          <button class="fbtn" id="passBtn">Pass to the other team</button>
+        </div>
 
-      <div class="fbtns" id="playBtns" hidden>
-        <button class="fbtn danger" id="strikeBtn">&#10005; Strike</button>
-        <button class="fbtn danger" id="stealFailBtn" hidden>Steal failed</button>
-        <button class="fbtn go" id="awardBtn">Award bank &amp; end round</button>
-        <button class="fbtn" id="revealAllBtn">Reveal all</button>
-      </div>
+        <div class="fbtns" id="playBtns" hidden>
+          <button class="fbtn danger" id="strikeBtn">&#10005; Strike</button>
+          <button class="fbtn danger" id="stealFailBtn" hidden>Steal failed</button>
+          <button class="fbtn go" id="awardBtn">Award bank &amp; end round</button>
+          <button class="fbtn" id="revealAllBtn">Reveal all</button>
+        </div>
 
-      <div class="fbtns" style="margin-top:.6em">
-        <button class="fbtn" id="abandonBtn">End match early</button>
+        <div class="fbtns">
+          <button class="fbtn quiet" id="abandonBtn">End match early</button>
+        </div>
       </div>
     </section>
 
