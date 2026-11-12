@@ -12,9 +12,15 @@ HARNESS = r"""
   function slots(){ return boardGrid.querySelectorAll('.slot'); }
   try {
     document.getElementById('modeFeud').click();
-    // the app draws categories at random; force a known order to assert on them
+    // the app draws at random inside each difficulty band; force the first board
+    // of every band so the assertions below know which boards are in play
+    function firstAtLevel(l){
+      for (var i = 0; i < BOARDS.length; i++) if (BOARDS[i].level === l) return i;
+      return -1;
+    }
+    function expected(i){ return BOARDS[firstAtLevel(ROUND_LEVELS[i])]; }
     document.getElementById('clearLineupBtn').click();
-    picks()[0].click(); picks()[1].click(); picks()[2].click(); picks()[3].click();
+    ROUND_LEVELS.forEach(function(l){ picks()[firstAtLevel(l)].click(); });
     document.getElementById('startMatchBtn').click();
 
     // round 1: team 1 wins the face-off, plays, takes 30
@@ -23,7 +29,7 @@ HARNESS = r"""
     slots()[0].click();
     document.getElementById('awardBtn').click();
     chk('setup: team1 has 30 from round 1', teams[0].score === 30);
-    chk('setup: now on the second drawn board', currentBoard.tag === BOARDS[1].tag);
+    chk('setup: now on the second drawn board', currentBoard.tag === expected(1).tag);
 
     // cut the match short and run the teaching round
     document.getElementById('abandonBtn').click();
@@ -32,7 +38,7 @@ HARNESS = r"""
     chk('beat the board active', fsRound2.classList.contains('active'));
     chk('avoid chips listed', avoidList.querySelectorAll('.ac').length === 6);
     chk('question carried over',
-        document.getElementById('r2Asked').textContent === BOARDS[1].asked);
+        document.getElementById('r2Asked').textContent === expected(1).asked);
     chk('two teams in the teaching round', r2TeamRow.querySelectorAll('.team').length === 2);
     chk('judge panel hidden initially', r2Judge.hidden === true);
     chk('badges clear on entry', r2TeamRow.querySelectorAll('.tbadge').length === 0);
@@ -43,7 +49,7 @@ HARNESS = r"""
     r2team(1).click();
     chk('judge panel opens', r2Judge.hidden === false);
     chk('judged team highlighted', r2team(1).classList.contains('control'));
-    var topAnswer = BOARDS[1].answers[0].text;
+    var topAnswer = expected(1).answers[0].text;
     setOut('Draft one: ' + topAnswer + ' the rest of the sentence.');
     chk('scan flags busted', r2Scan.className.indexOf('busted') > -1);
     chk('busted names the hit', r2Scan.textContent.indexOf(topAnswer) > -1);
@@ -54,7 +60,7 @@ HARNESS = r"""
 
     // a multi-word trigger counts as busted even when the exact answer is absent
     var multi = null;
-    BOARDS[1].answers.forEach(function(a){
+    expected(1).answers.forEach(function(a){
       a.keys.forEach(function(k){ if (!multi && k.indexOf(' ') > -1) multi = k; });
     });
     if (multi) {

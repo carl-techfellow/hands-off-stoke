@@ -356,8 +356,36 @@
   .lslot.filled{border-style:solid;border-color:var(--green)}
   .lslot .lnum{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
        text-transform:uppercase;color:#FF8FA8;font-weight:700;margin-bottom:.2em}
-  .lslot .ltxt{font-size:13px;font-weight:700;color:var(--paper)}
+  .lslot .ltxt{font-size:13px;font-weight:700;color:var(--paper);display:block}
   .lslot:not(.filled) .ltxt{color:var(--grey-dark)}
+  .lslot .llv{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.09em;
+       text-transform:uppercase;font-weight:700;margin-top:.3em;color:var(--grey)}
+  .lslot.lv1{border-color:rgba(47,158,88,.5)}
+  .lslot.lv1 .llv{color:#7FBF9B}
+  .lslot.lv2{border-color:rgba(214,196,0,.45)}
+  .lslot.lv2 .llv{color:#D8C84A}
+  .lslot.lv3{border-color:rgba(230,120,30,.5)}
+  .lslot.lv3 .llv{color:#E89A52}
+  .lslot.lv4{border-color:rgba(214,0,60,.6)}
+  .lslot.lv4 .llv{color:#FF8FA8}
+  .lslot:not(.filled){border-style:dashed}
+  .bplv{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;
+       text-transform:uppercase;font-weight:700;margin-bottom:.45em}
+  .bplv.lv1{color:#7FBF9B} .bplv.lv2{color:#D8C84A}
+  .bplv.lv3{color:#E89A52} .bplv.lv4{color:#FF8FA8}
+  .roundchip.lv1{color:#7FBF9B} .roundchip.lv2{color:#D8C84A}
+  .roundchip.lv3{color:#E89A52} .roundchip.lv4{color:#FF8FA8}
+
+  .howbox{width:100%;max-width:min(94vw,46em);margin-top:1.2em}
+  .howbox summary{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+       text-transform:uppercase;font-weight:700;color:#FF8FA8;cursor:pointer;
+       text-align:center;padding:.55em;border:1.5px solid rgba(255,143,168,.35);
+       border-radius:999px}
+  .howbox summary:hover{color:var(--paper);border-color:var(--paper)}
+  .howlist{text-align:left;margin:1em 0 0;padding-left:1.4em}
+  .howlist li{font-size:14.5px;line-height:1.5;color:var(--grey);margin-bottom:.5em}
+  .howlist li b{color:var(--paper)}
+  .howlist li::marker{font-family:var(--mono);font-weight:700;color:var(--red)}
   .boardpick.used{border-color:var(--green);opacity:.55}
   .lhint{font-size:13.5px;line-height:1.5;color:var(--grey);text-align:center;
        max-width:min(94vw,34em);margin:-.4em 0 1.1em}
@@ -509,10 +537,12 @@
     <section class="fscreen active" id="fsPick">
       <div class="big-emoji">&#128203;</div>
       <h2 class="fhead">Tonight&rsquo;s match</h2>
-      <p class="fsub">Four of <b id="deckCount">12</b> categories, drawn at random and
-      locked to their rounds. Every one is a job someone will actually hand you &mdash;
-      cover letters, standups, commit messages, test cases, slide titles. Rounds 1 and 2
-      are single points, round 3 doubles, round 4 triples. First team to <b>300</b> wins.</p>
+      <p class="fsub">Four of <b id="deckCount">12</b> categories, one drawn from each
+      difficulty band &mdash; <b>warm-up</b>, <b>steady</b>, <b>tricky</b>, <b>brutal</b>.
+      Every one is a job someone will actually hand you: cover letters, standups, commit
+      messages, test cases, slide titles. Rounds 1 and 2 are single points, round 3
+      doubles, round 4 triples, so the hardest board is also the most valuable. First
+      team to <b>300</b> wins.</p>
       <div class="lineup" id="lineup"></div>
       <p class="lhint" id="lineupHint">Reshuffle for a different draw, or tap a category
       below to swap one out.</p>
@@ -523,8 +553,25 @@
       <p class="adminlink"><a href="admin.html" target="_blank" rel="noopener">Answer key
       &amp; session log &rarr;</a><br><span>Open it on your own screen, never the projector.</span></p>
 
+      <details class="howbox">
+        <summary>How a match runs &mdash; 60 seconds of reading</summary>
+        <ol class="howlist">
+          <li><b>Four rounds, easy to hard.</b> Round 1 is a warm-up at single points;
+              round 4 is the hardest board on the table and worth <b>triple</b>.</li>
+          <li><b>Face-off.</b> Read the question out loud. First team to buzz takes the
+              board, then chooses to <b>play</b> it or <b>pass</b> it.</li>
+          <li><b>Guessing.</b> Type roughly what the team says into the box.
+              Keywords count &mdash; you do not need their exact wording.</li>
+          <li><b>Three misses</b> hands the other team one guess at the whole bank.</li>
+          <li><b>First to 300</b> wins. Four rounds with nobody there goes to sudden death,
+              then <b>Fast Money</b> for the winners.</li>
+          <li><b>Beat the Board</b> closes the session: both teams write one prompt that
+              escapes the answers everyone just watched the AI give.</li>
+        </ol>
+      </details>
+
       <details class="swapbox">
-        <summary>Swap a category by hand</summary>
+        <summary>Swap a round by hand</summary>
         <div class="boardlist" id="boardList"></div>
         <div class="fbtns">
           <button class="fbtn" id="clearLineupBtn">Clear all four</button>
@@ -1319,6 +1366,9 @@
   var BOARDS = FEUD.BOARDS;
   var POINTS = FEUD.POINTS;
   var MULTIPLIERS = FEUD.MULTIPLIERS;
+  var ROUND_LEVELS = FEUD.ROUND_LEVELS;
+  var LEVEL_NAMES = FEUD.LEVEL_NAMES;
+  var MATCH_ROUNDS = ROUND_LEVELS.length;
   var TARGET = FEUD.TARGET;
 
   // Fast Money draws five of these per match, same as the round categories.
@@ -1480,46 +1530,70 @@
   // ---------------- setup: build the lineup ----------------
   // Categories are drawn for the room rather than chosen by the host - nobody gets
   // to park an easy board on the triple round.
-  function drawLineup(){
-    var pool = BOARDS.slice();
-    for (var i = pool.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
-    }
-    lineup = pool.slice(0, 4);
+  function boardsAtLevel(l){
+    return BOARDS.filter(function(b){ return b.level === l; });
   }
+
+  // One board per difficulty band, in band order, so the night always ramps:
+  // a warm-up board at single points and the hardest board at triple.
+  function drawLineup(){
+    lineup = ROUND_LEVELS.map(function(l){
+      var pool = boardsAtLevel(l);
+      return pool[Math.floor(Math.random() * pool.length)];
+    });
+  }
+
+  function emptyLineup(){
+    lineup = ROUND_LEVELS.map(function(){ return null; });
+  }
+
+  function lineupReady(){
+    return lineup.length === MATCH_ROUNDS && lineup.every(Boolean);
+  }
+
+  function slotsLeft(){
+    return lineup.filter(function(b){ return !b; }).length;
+  }
+
+  function levelName(l){ return LEVEL_NAMES[l] || ''; }
+  function roundLevel(i){ return ROUND_LEVELS[Math.min(i, MATCH_ROUNDS - 1)]; }
 
   function paintLineup(){
     lineupEl.innerHTML = '';
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < MATCH_ROUNDS; i++) {
       var d = document.createElement('div');
-      d.className = 'lslot' + (lineup[i] ? ' filled' : '');
+      d.className = 'lslot lv' + roundLevel(i) + (lineup[i] ? ' filled' : '');
       var m = MULTIPLIERS[i];
-      d.innerHTML = '';
       var lab = document.createElement('span');
       lab.className = 'lnum';
       lab.textContent = 'R' + (i + 1) + (m > 1 ? ' \u00d7' + m : '');
       var txt = document.createElement('span');
       txt.className = 'ltxt';
       txt.textContent = lineup[i] ? lineup[i].tag : 'empty';
-      d.appendChild(lab); d.appendChild(txt);
+      var lv = document.createElement('span');
+      lv.className = 'llv';
+      lv.textContent = levelName(roundLevel(i));
+      d.appendChild(lab); d.appendChild(txt); d.appendChild(lv);
       lineupEl.appendChild(d);
     }
-    document.getElementById('startMatchBtn').disabled = (lineup.length < 4);
+    var missing = slotsLeft();
+    document.getElementById('startMatchBtn').disabled = !lineupReady();
     if (fsPick.classList.contains('active')) {
       paintStepper(0);
-      setCoach(lineup.length < 4
-        ? 'Pick ' + (4 - lineup.length) + ' more ' +
-          (4 - lineup.length === 1 ? 'category' : 'categories') +
-          ' below, or <b>Reshuffle</b> for a fresh draw.'
-        : 'Name the two teams on the next screen as you go. When the room is ready, ' +
-          'press <b>Start the match</b>.');
+      setCoach(!lineupReady()
+        ? 'Fill ' + missing + ' more ' + (missing === 1 ? 'round' : 'rounds') +
+          ' below &mdash; each category only fits the round that matches its ' +
+          'difficulty &mdash; or press <b>Reshuffle</b> for a fresh draw.'
+        : 'The night ramps: <i>' + levelName(1) + '</i> at single points up to <i>' +
+          levelName(4) + '</i> at triple. Name the teams as you go, and press ' +
+          '<b>Start the match</b> when the room is ready.');
       paintBarScore();
     }
     var hint = document.getElementById('lineupHint');
-    if (hint) hint.textContent = (lineup.length < 4)
-      ? ('Pick ' + (4 - lineup.length) + ' more below, or reshuffle for a fresh draw.')
-      : 'Reshuffle for a different draw, or swap one out by hand below.';
+    if (hint) hint.textContent = !lineupReady()
+      ? (missing + ' round' + (missing === 1 ? '' : 's') + ' still empty - open the ' +
+         'swap drawer below, or reshuffle for a fresh draw.')
+      : 'Reshuffle for a different draw, or swap a single round out by hand below.';
     [].slice.call(boardList.querySelectorAll('.boardpick')).forEach(function(b){
       var used = lineup.indexOf(BOARDS[+b.getAttribute('data-b')]) > -1;
       b.classList.toggle('used', used);
@@ -1534,18 +1608,25 @@
     var tag = document.createElement('span');
     tag.className = 'bptag'; tag.textContent = b.tag;
     btn.appendChild(tag);
+    var lv = document.createElement('span');
+    lv.className = 'bplv lv' + b.level;
+    lv.textContent = 'Round ' + (ROUND_LEVELS.indexOf(b.level) + 1) +
+                     ' · ' + levelName(b.level);
+    btn.appendChild(lv);
     btn.appendChild(document.createTextNode(b.asked));
+    // a category can only sit in the round that matches its difficulty - that is
+    // what keeps the easy-to-hard ramp honest when a host picks by hand
     btn.addEventListener('click', function(){
-      var at = lineup.indexOf(b);
-      if (at > -1) lineup.splice(at, 1);
-      else if (lineup.length < 4) lineup.push(b);
+      var slot = ROUND_LEVELS.indexOf(b.level);
+      if (slot < 0) return;
+      lineup[slot] = (lineup[slot] === b) ? null : b;
       paintLineup();
     });
     boardList.appendChild(btn);
   });
 
   document.getElementById('clearLineupBtn').addEventListener('click', function(){
-    lineup = []; paintLineup();
+    emptyLineup(); paintLineup();
   });
 
   document.getElementById('shuffleLineupBtn').addEventListener('click', function(){
@@ -1573,7 +1654,8 @@
     phase = 'faceoff';
     buildBoard();
     paintAll();
-    logEvent('round-start', { detail: currentBoard.tag + '  x' + multiplier() });
+    logEvent('round-start', { detail: currentBoard.tag + '  x' + multiplier() +
+                                      '  (' + levelName(roundLevel(roundIdx)) + ')' });
     fshow('board');
   }
 
@@ -1671,8 +1753,15 @@
     var left = currentBoard.answers.length -
                boardGrid.querySelectorAll('.slot.revealed').length;
     if (phase === 'faceoff') {
-      return 'Read the question out loud. First team to buzz takes the board &mdash; ' +
-             'tap whoever buzzed.';
+      var lv = roundLevel(roundIdx);
+      var framing = (lv === 1)
+        ? 'This one is a warm-up &mdash; the answers are the obvious ones. '
+        : (lv === 2)
+          ? 'A step up: the top answer is obvious, the bottom half is not. '
+          : (lv === 3)
+            ? 'Tricky board, and it is worth double. Expect the cheap answers to run out fast. '
+            : 'Hardest board of the night, worth triple. Strikes are normal here. ';
+      return framing + 'Read the question out loud, then tap whichever team buzzed first.';
     }
     if (phase === 'playpass') {
       return who(faceoffWinner) + ' won the buzz. Ask them: <b>play</b> this board, ' +
@@ -1700,9 +1789,11 @@
 
   function paintAll(){
     var m = multiplier();
-    roundChip.textContent = 'Round ' + (roundIdx + 1) + ' of 4' +
+    roundChip.textContent = 'Round ' + (roundIdx + 1) + ' of ' + MATCH_ROUNDS +
+      ' \u00b7 ' + levelName(roundLevel(roundIdx)).toLowerCase() +
       (m > 1 ? ' \u00b7 ' + m + '\u00d7 points' : ' \u00b7 single points') +
       ' \u00b7 first to ' + TARGET;
+    roundChip.className = 'roundchip lv' + roundLevel(roundIdx);
     bankChip.innerHTML = 'Bank <b>' + bank + '</b>';
     faceoffBar.hidden = (phase !== 'faceoff');
     if (phase === 'faceoff') faceoffBar.textContent = 'Face-off! Reveal what they said, then award control.';
@@ -1772,7 +1863,9 @@
       return;
     }
     input.value = '';
-    setVerdict('\u2713  #' + (i + 1) + '  ' + ansText(currentBoard.answers[i]), 'hit');
+    setVerdict('\u2713  ' + (i === 0 ? 'TOP ANSWER!  ' : '#' + (i + 1) + '  ') +
+               ansText(currentBoard.answers[i]) +
+               '  +' + (POINTS[i] * multiplier()), 'hit');
     logEvent('guess-hit', { team: guessingTeam, said: text,
                             detail: '#' + (i + 1) + ' ' + ansText(currentBoard.answers[i]),
                             points: POINTS[i] * multiplier() });
@@ -1854,7 +1947,7 @@
   function endRound(){
     if (teams[0].score >= TARGET || teams[1].score >= TARGET) return goFastMoney();
     roundIdx++;
-    if (roundIdx >= lineup.length) {
+    if (roundIdx >= MATCH_ROUNDS) {
       if (teams[0].score === teams[1].score || (teams[0].score < TARGET && teams[1].score < TARGET)) {
         return goSudden();
       }
@@ -2185,6 +2278,7 @@
   });
 
   document.getElementById('deckCount').textContent = BOARDS.length;
+  emptyLineup();
   drawLineup();
   drawFastSet();
   paintLineup();

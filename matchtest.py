@@ -10,11 +10,17 @@ HARNESS = r"""
   function picks(){ return boardList.querySelectorAll('.boardpick'); }
   function slots(){ return boardGrid.querySelectorAll('.slot'); }
   function startBtn(){ return document.getElementById('startMatchBtn'); }
-  // the app draws at random; tests that assert on specific boards force the order
+  // the app draws at random within each difficulty band; tests that assert on
+  // specific boards force the first board of every band
+  function firstAtLevel(l){
+    for (var i = 0; i < BOARDS.length; i++) if (BOARDS[i].level === l) return i;
+    return -1;
+  }
   function fixLineup(){
     document.getElementById('clearLineupBtn').click();
-    picks()[0].click(); picks()[1].click(); picks()[2].click(); picks()[3].click();
+    ROUND_LEVELS.forEach(function(l){ picks()[firstAtLevel(l)].click(); });
   }
+  function expected(i){ return BOARDS[firstAtLevel(ROUND_LEVELS[i])]; }
   function faceoff(i){ document.getElementById(i === 0 ? 'fo1Btn' : 'fo2Btn').click(); }
   function strike3(){ var b = document.getElementById('strikeBtn'); b.click(); b.click(); b.click(); }
   // win a round outright: face-off -> play -> reveal one slot -> award
@@ -43,8 +49,28 @@ HARNESS = r"""
     chk('no duplicate tags', new Set(BOARDS.map(function(b){ return b.tag; })).size === BOARDS.length);
     chk('four lineup slots shown', lineupEl.querySelectorAll('.lslot').length === 4);
 
-    // ---- categories are drawn automatically ----
+    // ---- categories are drawn automatically, easy to hard ----
+    chk('four difficulty bands', ROUND_LEVELS.length === 4);
+    chk('bands run easy to hard',
+        ROUND_LEVELS.join(',') === '1,2,3,4');
+    chk('every board carries a difficulty',
+        BOARDS.every(function(b){ return ROUND_LEVELS.indexOf(b.level) > -1; }));
+    chk('every band has boards to draw from',
+        ROUND_LEVELS.every(function(l){
+          return BOARDS.filter(function(b){ return b.level === l; }).length >= 2; }));
+    chk('every band is named',
+        ROUND_LEVELS.every(function(l){ return !!LEVEL_NAMES[l]; }));
     chk('lineup auto-filled on arrival', lineup.length === 4);
+    chk('the draw ramps easy to hard',
+        lineup.map(function(b){ return b.level; }).join(',') === ROUND_LEVELS.join(','));
+    chk('the hardest board lands on the triple round',
+        lineup[3].level === 4 && MULTIPLIERS[3] === 3);
+    chk('the warm-up board lands on a single-point round',
+        lineup[0].level === 1 && MULTIPLIERS[0] === 1);
+    chk('each slot is labelled with its band',
+        lineupEl.querySelectorAll('.llv').length === 4 &&
+        lineupEl.querySelectorAll('.llv')[0].textContent === LEVEL_NAMES[1] &&
+        lineupEl.querySelectorAll('.llv')[3].textContent === LEVEL_NAMES[4]);
     chk('all four slots filled', lineupEl.querySelectorAll('.lslot.filled').length === 4);
     chk('start ready without any picking', startBtn().disabled === false);
     chk('draw has no repeats', new Set(lineup.map(function(b){ return b.tag; })).size === 4);
@@ -53,40 +79,61 @@ HARNESS = r"""
     chk('drawn boards marked used in the swap list',
         boardList.querySelectorAll('.boardpick.used').length === 4);
 
-    // reshuffle keeps a legal four-board draw
+    // reshuffle keeps a legal, still-ramped draw
     var before = lineup.map(function(b){ return b.tag; }).join(',');
-    var changed = false;
-    for (var tries = 0; tries < 25 && !changed; tries++) {
+    var changed = false, rampHeld = true;
+    for (var tries = 0; tries < 40; tries++) {
       document.getElementById('shuffleLineupBtn').click();
       if (lineup.map(function(b){ return b.tag; }).join(',') !== before) changed = true;
+      if (lineup.map(function(b){ return b.level; }).join(',') !== ROUND_LEVELS.join(','))
+        rampHeld = false;
     }
     chk('reshuffle produces a different draw', changed);
     chk('reshuffle still draws four', lineup.length === 4);
     chk('reshuffle has no repeats', new Set(lineup.map(function(b){ return b.tag; })).size === 4);
+    chk('reshuffle never breaks the ramp', rampHeld);
 
     document.getElementById('clearLineupBtn').click();
-    chk('clear empties the lineup', lineup.length === 0);
+    chk('clear empties every slot',
+        lineup.length === 4 && lineup.every(function(b){ return !b; }));
     chk('clear disables start', startBtn().disabled === true);
-    chk('clear asks for four more', document.getElementById('lineupHint').textContent.indexOf('4 more') > -1);
+    chk('clear says four rounds are empty',
+        document.getElementById('lineupHint').textContent.indexOf('4 rounds') > -1);
+    chk('empty slots are drawn as empty',
+        lineupEl.querySelectorAll('.lslot.filled').length === 0);
 
-    // ---- manual swapping still works ----
-    picks()[0].click();
-    chk('one board picked', lineup.length === 1);
-    chk('picked board marked used', picks()[0].classList.contains('used'));
-    chk('slot 1 filled', lineupEl.querySelectorAll('.lslot.filled').length === 1);
+    // ---- manual swapping drops a board into the round its difficulty fits ----
+    var hardIdx = firstAtLevel(4);
+    picks()[hardIdx].click();
+    chk('a hard board lands in round 4', lineup[3] === BOARDS[hardIdx]);
+    chk('it does not land in round 1', !lineup[0]);
+    chk('picked board marked used', picks()[hardIdx].classList.contains('used'));
+    chk('one slot filled', lineupEl.querySelectorAll('.lslot.filled').length === 1);
     chk('still disabled at one', startBtn().disabled === true);
-    chk('hint counts the gap', document.getElementById('lineupHint').textContent.indexOf('3 more') > -1);
+    chk('hint counts the gap',
+        document.getElementById('lineupHint').textContent.indexOf('3 rounds') > -1);
+    chk('the swap list labels each board with its round',
+        picks()[hardIdx].querySelector('.bplv').textContent.indexOf('Round 4') > -1);
 
-    picks()[0].click();
-    chk('re-click removes from lineup', lineup.length === 0);
-    chk('used mark cleared', picks()[0].classList.contains('used') === false);
+    picks()[hardIdx].click();
+    chk('re-click clears that slot', !lineup[3]);
+    chk('used mark cleared', picks()[hardIdx].classList.contains('used') === false);
 
-    picks()[0].click(); picks()[1].click(); picks()[2].click(); picks()[3].click();
-    chk('four picked', lineup.length === 4);
+    // a second board of the same band replaces the first rather than stacking
+    var hardA = firstAtLevel(4), hardB = -1;
+    for (var hi = hardA + 1; hi < BOARDS.length; hi++) if (BOARDS[hi].level === 4) { hardB = hi; break; }
+    picks()[hardA].click();
+    picks()[hardB].click();
+    chk('same-band pick replaces rather than stacks',
+        lineup[3] === BOARDS[hardB] && lineup.filter(Boolean).length === 1);
+    chk('the replaced board is no longer marked used',
+        picks()[hardA].classList.contains('used') === false);
+
+    fixLineup();
+    chk('four picked', lineup.filter(Boolean).length === 4);
     chk('start enabled at four', startBtn().disabled === false);
-    picks()[4].click();
-    chk('cannot pick a fifth', lineup.length === 4);
-    chk('lineup order preserved', lineup[0].tag === BOARDS[0].tag && lineup[3].tag === BOARDS[3].tag);
+    chk('hand-picked lineup still ramps',
+        lineup.map(function(b){ return b.level; }).join(',') === ROUND_LEVELS.join(','));
     chk('multipliers labelled on lineup',
         lineupEl.textContent.indexOf('\u00d72') > -1 && lineupEl.textContent.indexOf('\u00d73') > -1);
 
@@ -96,7 +143,12 @@ HARNESS = r"""
     // ---- round 1: face-off ----
     chk('match starts on board screen', fsBoard.classList.contains('active'));
     chk('round index starts at 0', roundIdx === 0);
-    chk('first board is lineup[0]', currentBoard.tag === BOARDS[0].tag);
+    chk('first board is lineup[0]', currentBoard.tag === expected(0).tag);
+    chk('round 1 is the warm-up band', currentBoard.level === 1);
+    chk('the round chip names the band',
+        roundChip.textContent.indexOf(LEVEL_NAMES[1].toLowerCase()) > -1);
+    chk('the round chip is coloured by band',
+        roundChip.className.indexOf('lv1') > -1);
     chk('six slots built', slots().length === 6);
     chk('starts in face-off', phase === 'faceoff');
     chk('face-off bar visible', document.getElementById('faceoffBar').hidden === false);
@@ -210,6 +262,8 @@ HARNESS = r"""
     chk('a keyword guess reveals the slot', slots()[0].classList.contains('revealed'));
     chk('verdict shows the hit', verdict().className.indexOf('hit') > -1);
     chk('verdict names the answer', verdict().textContent.indexOf('express my interest') > -1);
+    chk('the number-one answer is called out', verdict().textContent.indexOf('TOP ANSWER') > -1);
+    chk('the verdict shows the points won', verdict().textContent.indexOf('+30') > -1);
     chk('guess input cleared on a hit', gi.value === '');
     chk('keyword guess banked 30', bank === 30);
 
@@ -247,7 +301,8 @@ HARNESS = r"""
     chk('bank reset for new round', bank === 0);
     chk('strikes reset for new round', strikes === 0);
     chk('back to face-off', phase === 'faceoff');
-    chk('board 2 loaded', currentBoard.tag === BOARDS[1].tag);
+    chk('board 2 loaded', currentBoard.tag === expected(1).tag);
+    chk('round 2 steps up a band', currentBoard.level === 2);
     chk('new board unrevealed', boardGrid.querySelectorAll('.slot.revealed').length === 0);
 
     // ---- round 2 still single points ----
@@ -263,6 +318,7 @@ HARNESS = r"""
 
     // ---- round 3 doubles ----
     chk('round 3 multiplier is 2', multiplier() === 2);
+    chk('round 3 is the tricky band', currentBoard.level === 3);
     chk('round 3 slot 1 worth 60', slots()[0].querySelector('.spts').textContent === '60');
     chk('round chip shows 2x', roundChip.textContent.indexOf('2\u00d7') > -1);
     faceoff(0);
@@ -275,6 +331,9 @@ HARNESS = r"""
 
     // ---- round 4 triples ----
     chk('round 4 multiplier is 3', multiplier() === 3);
+    chk('round 4 is the hardest band', currentBoard.level === 4);
+    chk('the chip says brutal',
+        roundChip.textContent.indexOf(LEVEL_NAMES[4].toLowerCase()) > -1);
     chk('round 4 slot 1 worth 90', slots()[0].querySelector('.spts').textContent === '90');
     chk('round chip shows 3x', roundChip.textContent.indexOf('3\u00d7') > -1);
 
@@ -360,8 +419,10 @@ HARNESS = r"""
     // ---- new match wipes everything and draws again ----
     document.getElementById('newMatchBtn').click();
     chk('new match returns to picker', fsPick.classList.contains('active'));
-    chk('new match draws a fresh four', lineup.length === 4);
+    chk('new match draws a fresh four', lineup.filter(Boolean).length === 4);
     chk('new match draw has no repeats', new Set(lineup.map(function(b){ return b.tag; })).size === 4);
+    chk('new match still ramps',
+        lineup.map(function(b){ return b.level; }).join(',') === ROUND_LEVELS.join(','));
     chk('new match zeroes scores', teams[0].score === 0 && teams[1].score === 0);
     chk('new match resets round', roundIdx === 0);
     chk('new match leaves start ready', startBtn().disabled === false);

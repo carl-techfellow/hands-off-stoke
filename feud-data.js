@@ -8,7 +8,7 @@
 // (30/25/20/15/10/5) instead of claiming survey counts nobody counted.
 (function(){
   var BOARDS = [
-    { tag: "Cover letter",
+    { tag: "Cover letter", level: 1,
       asked: "Ask any chatbot to write a cover letter. Name the opening line it reaches for.",
       answers: [
         { text: "I am writing to express my interest in",
@@ -26,7 +26,7 @@
           keys: ["came across your posting", "came across your job", "saw your posting",
                  "came across"] }
       ] },
-    { tag: "Resume bullet",
+    { tag: "Resume bullet", level: 3,
       asked: "Ask any chatbot to write a resume bullet. Name the verb it starts with.",
       answers: [
         { text: "Spearheaded", keys: ["spearheaded", "spearhead", "spearheading"] },
@@ -37,7 +37,7 @@
         { text: "Implemented", keys: ["implemented", "implement", "implementing"] },
         { text: "Utilized", keys: ["utilized", "utilize", "utilizing", "utilization"] }
       ] },
-    { tag: "Status update",
+    { tag: "Status update", level: 3,
       asked: "Ask any chatbot to write your standup update. Name a phrase it drops in.",
       answers: [
         { text: "Circling back", keys: ["circling back", "circle back"] },
@@ -47,7 +47,7 @@
         { text: "Moving forward", keys: ["moving forward", "going forward"] },
         { text: "Please let me know if", keys: ["let me know", "please let me know"] }
       ] },
-    { tag: "Commit message",
+    { tag: "Commit message", level: 2,
       asked: "Ask any chatbot to write a commit message. Name what it writes.",
       answers: [
         { text: "Update README", keys: ["update readme", "readme"] },
@@ -59,7 +59,7 @@
           keys: ["minor changes", "small changes", "various changes", "minor fixes",
                  "misc changes"] }
       ] },
-    { tag: "Variable names",
+    { tag: "Variable names", level: 4,
       asked: "Ask any chatbot for code holding a list of users. Name the variable it picks.",
       answers: [
         { text: "users", keys: ["users"] },
@@ -69,7 +69,7 @@
         { text: "items", keys: ["items", "item list", "itemlist"] },
         { text: "userData", keys: ["userdata", "user data"] }
       ] },
-    { tag: "Test cases",
+    { tag: "Test cases", level: 4,
       asked: "Ask any chatbot to write test cases for a login form. Name a case it lists.",
       answers: [
         { text: "Valid username and password",
@@ -87,7 +87,7 @@
           keys: ["lockout", "locked out", "too many attempts", "failed attempts",
                  "account locked"] }
       ] },
-    { tag: "User story",
+    { tag: "User story", level: 4,
       asked: "Ask any chatbot for a Jira user story. Name the words it uses.",
       answers: [
         { text: "As a user, I want", keys: ["as a user", "i want"] },
@@ -97,7 +97,7 @@
         { text: "As an admin", keys: ["as an admin", "as an administrator", "admin"] },
         { text: "Definition of done", keys: ["definition of done", "done criteria"] }
       ] },
-    { tag: "Slide titles",
+    { tag: "Slide titles", level: 2,
       asked: "Ask any chatbot to title the slides of a pitch deck. Name a title it gives you.",
       answers: [
         { text: "Key Takeaways", keys: ["key takeaways", "takeaways", "key points"] },
@@ -108,7 +108,7 @@
           keys: ["market opportunity", "market size", "the market", "opportunity"] },
         { text: "Thank You", keys: ["thank you", "questions", "q and a", "thanks"] }
       ] },
-    { tag: "App ideas",
+    { tag: "App ideas", level: 1,
       asked: "Ask any chatbot for a beginner web app idea. Name the app it suggests.",
       answers: [
         { text: "To-do list", keys: ["to do list", "todo list", "todo", "task list",
@@ -120,7 +120,7 @@
         { text: "Personal blog", keys: ["personal blog", "blog", "blogging platform"] },
         { text: "Quiz app", keys: ["quiz app", "quiz", "trivia", "flashcards"] }
       ] },
-    { tag: "Hedging",
+    { tag: "Hedging", level: 2,
       asked: "Ask any chatbot something it is unsure about. Name how it hedges.",
       answers: [
         { text: "It depends", keys: ["it depends", "depends"] },
@@ -137,7 +137,7 @@
         { text: "Generally speaking",
           keys: ["generally speaking", "in general", "typically", "usually"] }
       ] },
-    { tag: "Sign-offs",
+    { tag: "Sign-offs", level: 1,
       asked: "Ask any chatbot for anything at all. Name the line it ends on.",
       answers: [
         { text: "Let me know if you have any questions",
@@ -149,7 +149,7 @@
         { text: "Happy to help", keys: ["happy to help", "glad to help"] },
         { text: "Good luck", keys: ["good luck", "best of luck"] }
       ] },
-    { tag: "Formatting",
+    { tag: "Formatting", level: 3,
       asked: "Ask any chatbot a plain question. Name a formatting habit in the answer.",
       answers: [
         { text: "Bullet points", keys: ["bullet points", "bullets", "bulleted list", "bullet"] },
@@ -190,8 +190,15 @@
           "I would be happy to help"] }
   ];
 
+  // Round 1 draws from level 1, round 4 from level 4 - the night ramps up, and the
+  // triple-points round is also the hardest board on the table.
+  var ROUND_LEVELS = [1, 2, 3, 4];
+  var LEVEL_NAMES = { 1: 'Warm-up', 2: 'Steady', 3: 'Tricky', 4: 'Brutal' };
+
   window.FEUD = {
     BOARDS: BOARDS,
+    ROUND_LEVELS: ROUND_LEVELS,
+    LEVEL_NAMES: LEVEL_NAMES,
     FASTMONEY: FASTMONEY,
     POINTS: [30, 25, 20, 15, 10, 5],
     MULTIPLIERS: [1, 1, 2, 3],

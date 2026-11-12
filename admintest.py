@@ -24,15 +24,22 @@ GAME_HARNESS = r"""
     chk('answer key opens in its own tab',
         document.querySelector('.adminlink a').target === '_blank');
 
+    function firstAtLevel(l){
+      for (var i = 0; i < BOARDS.length; i++) if (BOARDS[i].level === l) return i;
+      return -1;
+    }
+    function expected(i){ return BOARDS[firstAtLevel(FEUD.ROUND_LEVELS[i])]; }
     document.getElementById('clearLineupBtn').click();
-    picks()[0].click(); picks()[1].click(); picks()[2].click(); picks()[3].click();
+    FEUD.ROUND_LEVELS.forEach(function(l){ picks()[firstAtLevel(l)].click(); });
     document.getElementById('startMatchBtn').click();
     chk('match-start logged', kinds().indexOf('match-start') > -1);
     chk('match-start records the lineup',
         entries()[0].detail.indexOf('R1 x1') > -1 && entries()[0].detail.indexOf('R4 x3') > -1);
     chk('round-start logged', kinds().indexOf('round-start') > -1);
     chk('round-start names the board',
-        entries()[1].board === BOARDS[0].tag && entries()[1].round === 1);
+        entries()[1].board === expected(0).tag && entries()[1].round === 1);
+    chk('round-start records the difficulty band',
+        entries()[1].detail.indexOf(FEUD.LEVEL_NAMES[1]) > -1);
 
     document.getElementById('fo1Btn').click();
     chk('face-off logged', last().kind === 'face-off');
@@ -56,7 +63,7 @@ GAME_HARNESS = r"""
     chk('the hit records the answer it landed on', hit.detail.indexOf('express my interest') > -1);
     chk('the hit records the points', hit.points === 30);
     chk('the hit records the round', hit.round === 1);
-    chk('the hit records the board', hit.board === BOARDS[0].tag);
+    chk('the hit records the board', hit.board === expected(0).tag);
 
     guess('express interest');
     chk('a repeat guess is logged separately', last().kind === 'guess-repeat');
@@ -82,7 +89,7 @@ GAME_HARNESS = r"""
     // steal that lands, on the next board
     document.getElementById('fo2Btn').click();
     document.getElementById('playBtn').click();
-    guess(BOARDS[1].answers[0].keys[0]);
+    guess(expected(1).answers[0].keys[0]);
     chk('guess on a later round records round 2', last().round === 2);
 
     document.getElementById('abandonBtn').click();
@@ -138,6 +145,15 @@ ADMIN_HARNESS = r"""
 
     chk('first board shows its question',
         boards[0].querySelector('.bq').textContent === FEUD.BOARDS[0].asked);
+    chk('every board shows its difficulty band',
+        document.querySelectorAll('#boards .blv').length === FEUD.BOARDS.length);
+    chk('the band badge names the round it fits',
+        boards[0].querySelector('.blv').textContent ===
+        'Round ' + (FEUD.ROUND_LEVELS.indexOf(FEUD.BOARDS[0].level) + 1) +
+        ' \u00b7 ' + FEUD.LEVEL_NAMES[FEUD.BOARDS[0].level]);
+    chk('three boards per band',
+        FEUD.ROUND_LEVELS.every(function(l){
+          return FEUD.BOARDS.filter(function(b){ return b.level === l; }).length === 3; }));
     chk('ranks run 1 to 6',
         boards[0].querySelectorAll('.rank')[0].textContent === '#1' &&
         boards[0].querySelectorAll('.rank')[5].textContent === '#6');
@@ -174,6 +190,12 @@ ADMIN_HARNESS = r"""
 
     find('readme');
     chk('search matches the commit board', visible().length === 1);
+
+    find(FEUD.LEVEL_NAMES[4].toLowerCase());
+    chk('search can filter by difficulty band', visible().length === 3);
+    chk('a band search only returns that band',
+        visible().every(function(d){
+          return d.querySelector('.blv').classList.contains('lv4'); }));
 
     find('zzzznothing');
     chk('no matches hides everything', visible().length === 0);
@@ -243,6 +265,10 @@ ADMIN_HARNESS = r"""
         document.querySelector('.warn').textContent.toLowerCase().indexOf('projector') > -1);
     chk('provenance stated in the footer',
         document.querySelector('footer').textContent.indexOf('not measured') > -1);
+    chk('the build prompt is linked in the nav',
+        document.querySelector('nav a[href="PROMPT.md"]') !== null);
+    chk('the build prompt is linked in the footer',
+        document.querySelector('footer a[href="PROMPT.md"]') !== null);
 
     // the run-through: the host should not have to reconstruct the order of play
     var run = document.querySelectorAll('#run, .runlist');
@@ -260,6 +286,9 @@ ADMIN_HARNESS = r"""
         document.querySelectorAll('.runlist.tight')[0].children.length === 3);
     chk('how-to-run is in the nav',
         document.querySelector('nav a[href="#run"]') !== null);
+    chk('the run-through explains the ramp',
+        document.querySelectorAll('.runlist')[0].textContent.toLowerCase()
+          .indexOf('difficulty band') > -1);
   } catch(e){ log.push('FAIL threw: ' + e.message); }
   var o = document.createElement('pre'); o.id='ADMIN'; o.textContent = log.join(' | ');
   document.body.appendChild(o);

@@ -67,12 +67,31 @@ HARNESS = r"""
     chk('nothing done yet', doneCount() === 0);
     chk('lineup step says start the match', coach().toLowerCase().indexOf('start the match') > -1);
 
+    function firstAtLevel(l){
+      for (var i = 0; i < BOARDS.length; i++) if (BOARDS[i].level === l) return i;
+      return -1;
+    }
     document.getElementById('clearLineupBtn').click();
-    chk('an empty lineup asks for four more', coach().indexOf('4 more') > -1);
-    picks()[0].click();
-    chk('the ask counts down', coach().indexOf('3 more') > -1);
-    picks()[1].click(); picks()[2].click(); picks()[3].click();
+    chk('an empty lineup asks for four more rounds', coach().indexOf('4 more rounds') > -1);
+    chk('the empty lineup explains the difficulty rule',
+        coach().toLowerCase().indexOf('difficulty') > -1);
+    picks()[firstAtLevel(1)].click();
+    chk('the ask counts down', coach().indexOf('3 more rounds') > -1);
+    ROUND_LEVELS.slice(1).forEach(function(l){ picks()[firstAtLevel(l)].click(); });
     chk('a full lineup says start again', coach().toLowerCase().indexOf('start the match') > -1);
+    chk('the full lineup explains the ramp',
+        coach().indexOf(LEVEL_NAMES[1]) > -1 && coach().indexOf(LEVEL_NAMES[4]) > -1);
+
+    // guided instructions, in the game, before anyone presses start
+    var how = document.querySelector('.howbox');
+    chk('a how-it-runs block sits on the lineup screen', how !== null);
+    chk('the how-it-runs block starts closed', how.open === false);
+    chk('it walks the whole match', how.querySelectorAll('.howlist li').length >= 6);
+    var howText = how.textContent.toLowerCase();
+    ['easy to hard', 'face-off', 'keywords', 'three misses', '300', 'beat the board']
+      .forEach(function(bit){
+        chk('the walkthrough covers ' + bit, howText.indexOf(bit) > -1);
+      });
 
     // ---------------- feud: a round ----------------
     document.getElementById('startMatchBtn').click();
@@ -80,6 +99,8 @@ HARNESS = r"""
     chk('stepper moves to round 1', nowStep() === 'R1');
     chk('the draw is marked done', doneCount() === 1);
     chk('face-off step explains the buzz', coach().toLowerCase().indexOf('buzz') > -1);
+    chk('round 1 face-off frames it as a warm-up',
+        coach().toLowerCase().indexOf('warm-up') > -1);
     chk('face-off step says read it out loud', coach().toLowerCase().indexOf('out loud') > -1);
     chk('bar score starts level',
         document.getElementById('abScore').textContent.replace(/\s/g, '') === '0\u20130');
